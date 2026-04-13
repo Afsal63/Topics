@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>React & Redux Topics Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+
+  :root { 
+    --gap: 20px; 
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Fira Code', monospace;
+    
+    --color-background-root: #0a0a0c;
+    --color-background-primary: #121216;
+    --color-background-secondary: #1a1a21;
+    --color-background-info: rgba(99, 102, 241, 0.1);
+    
+    --color-border-primary: rgba(255,255,255,0.1);
+    --color-border-secondary: rgba(255,255,255,0.06);
+    --color-border-tertiary: rgba(255,255,255,0.03);
+    --color-border-info: rgba(99, 102, 241, 0.2);
+    --color-border-hover: rgba(168, 85, 247, 0.4);
+    
+    --color-text-primary: #f8fafc;
+    --color-text-secondary: #94a3b8;
+    --color-text-tertiary: #64748b;
+    --color-text-info: #818cf8;
+    
+    --border-radius-sm: 8px;
+    --border-radius-md: 16px;
+    --border-radius-lg: 24px;
+    
+    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body { 
+    font-family: var(--font-sans); 
+    background-color: var(--color-background-root);
+    background-image: 
+      radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.04), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.04), transparent 25%);
+    background-attachment: fixed;
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  
+  #app { 
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 2rem; 
+  }
+  
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;
+  }
+
+  .header-area {
+    margin-bottom: 2.5rem;
+    text-align: center;
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .search-bar { 
+    display: flex; 
+    gap: 12px; 
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    position: relative;
+  }
+  
+  #search { 
+    flex: 1; 
+    font-size: 16px; 
+    font-family: var(--font-sans);
+    padding: 16px 24px;
+    border-radius: 100px;
+    background: var(--color-background-primary);
+    border: 1px solid var(--color-border-secondary);
+    color: var(--color-text-primary);
+    transition: all var(--transition-fast);
+    outline: none;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.2);
+  }
+  #search:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2), 0 4px 20px -2px rgba(0, 0, 0, 0.3);
+    background: var(--color-background-secondary);
+  }
+  #search::placeholder {
+    color: var(--color-text-tertiary);
+  }
+  
+  .cat-pills { 
+    display: flex; 
+    flex-wrap: wrap; 
+    justify-content: center;
+    gap: 10px; 
+    margin-bottom: 2.5rem; 
+  }
+  
+  .pill { 
+    font-size: 13px; 
+    font-family: var(--font-sans);
+    font-weight: 500;
+    padding: 8px 18px; 
+    border-radius: 100px; 
+    border: 1px solid var(--color-border-secondary); 
+    cursor: pointer; 
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(8px);
+    color: var(--color-text-secondary); 
+    transition: all var(--transition-fast); 
+  }
+  .pill:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-primary);
+    transform: translateY(-1px);
+  }
+  .pill.active { 
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: #fff; 
+    border-color: transparent; 
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  }
+  
+  .count-label { 
+    font-size: 14px; 
+    font-weight: 500;
+    color: var(--color-text-tertiary); 
+    margin-bottom: 1.5rem; 
+    text-align: right;
+  }
+  
+  .topic-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+    gap: var(--gap); 
+  }
+  
+  .card { 
+    background: linear-gradient(180deg, var(--color-background-primary) 0%, var(--color-background-root) 100%);
+    border: 1px solid var(--color-border-secondary); 
+    border-radius: var(--border-radius-md); 
+    padding: 24px; 
+    cursor: pointer; 
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .card:hover { 
+    border-color: var(--color-border-hover); 
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.3);
+  }
+  .card:hover::before {
+    opacity: 1;
+  }
+  
+  .card-num { 
+    font-size: 12px; 
+    font-family: var(--font-mono);
+    color: var(--color-text-tertiary); 
+    margin-bottom: 12px; 
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-num::before {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-text-tertiary);
+    opacity: 0.5;
+  }
+  .card:hover .card-num::before {
+    background: #8b5cf6;
+    opacity: 1;
+    box-shadow: 0 0 8px #8b5cf6;
+  }
+  
+  .card-title { 
+    font-size: 17px; 
+    font-weight: 600; 
+    color: var(--color-text-primary); 
+    margin-bottom: 20px;
+    line-height: 1.4;
+  }
+  
+  .card-cat { 
+    font-size: 12px; 
+    font-weight: 600;
+    color: var(--color-text-info); 
+    margin-top: auto; 
+    display: inline-block;
+    padding: 6px 12px;
+    background: var(--color-background-info);
+    border: 1px solid var(--color-border-info);
+    border-radius: 100px;
+    align-self: flex-start;
+  }
+  
+  .modal-bg { 
+    display: none; 
+    position: fixed; 
+    inset: 0; 
+    background: rgba(0,0,0,0.7); 
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 100; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 1.5rem; 
+  }
+  .modal-bg.open { 
+    display: flex; 
+    animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; backdrop-filter: blur(0px); }
+    to { opacity: 1; backdrop-filter: blur(8px); }
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(20px) scale(0.98); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+  }
+
+  .modal { 
+    background: var(--color-background-primary); 
+    border-radius: var(--border-radius-lg); 
+    border: 1px solid var(--color-border-secondary); 
+    max-width: 760px; 
+    width: 100%; 
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    position: relative; 
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05) inset;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  
+  .modal-header {
+    padding: 32px 40px 24px;
+    border-bottom: 1px solid var(--color-border-tertiary);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+    border-top-left-radius: var(--border-radius-lg);
+    border-top-right-radius: var(--border-radius-lg);
+  }
+  
+  .modal-close { 
+    position: absolute; 
+    top: 24px; 
+    right: 24px; 
+    background: var(--color-background-secondary); 
+    border: 1px solid var(--color-border-secondary);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px; 
+    cursor: pointer; 
+    color: var(--color-text-secondary); 
+    transition: all var(--transition-fast);
+  }
+  .modal-close:hover {
+    background: var(--color-text-primary);
+    color: var(--color-background-root);
+    transform: rotate(90deg);
+  }
+  
+  .modal-num { 
+    font-size: 13px; 
+    font-family: var(--font-mono);
+    color: var(--color-text-info); 
+    margin-bottom: 12px; 
+    font-weight: 500;
+  }
+  
+  .modal-title { 
+    font-size: 28px; 
+    font-weight: 700; 
+    color: var(--color-text-primary); 
+    margin-bottom: 16px; 
+    line-height: 1.3;
+    padding-right: 48px;
+    letter-spacing: -0.01em;
+  }
+  
+  .modal-cat-badge { 
+    display: inline-flex; 
+    align-items: center;
+    font-size: 13px; 
+    font-weight: 600;
+    padding: 6px 14px; 
+    border-radius: 100px; 
+    background: rgba(99, 102, 241, 0.15); 
+    color: var(--color-text-info); 
+    border: 1px solid rgba(99, 102, 241, 0.25);
+  }
+  
+  .modal-content-wrapper {
+    overflow-y: auto;
+    padding: 32px 40px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-primary) transparent;
+  }
+  .modal-content-wrapper::-webkit-scrollbar {
+    width: 6px;
+  }
+  .modal-content-wrapper::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .modal-content-wrapper::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-primary);
+    border-radius: 10px;
+  }
+  
+  .modal-body { 
+    font-size: 16px; 
+    line-height: 1.75; 
+    color: var(--color-text-secondary); 
+  }
+  
+  .modal-body p {
+    margin-bottom: 20px;
+  }
+  .modal-body em {
+    color: #e2e8f0;
+    font-style: italic;
+  }
+  .modal-body strong {
+    color: #f8fafc;
+    font-weight: 600;
+  }
+  
+  .modal-body code { 
+    font-family: var(--font-mono); 
+    font-size: 14px; 
+    background: var(--color-background-secondary); 
+    color: #e2e8f0;
+    padding: 4px 8px; 
+    border-radius: 6px; 
+    border: 1px solid var(--color-border-tertiary);
+  }
+  
+  .modal-body pre { 
+    background: var(--color-background-root); 
+    border-radius: 12px; 
+    padding: 20px 24px; 
+    margin: 24px 0; 
+    overflow-x: auto; 
+    font-family: var(--font-mono); 
+    font-size: 14px; 
+    line-height: 1.6; 
+    border: 1px solid var(--color-border-secondary); 
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+  }
+  
+  .modal-body pre code {
+    background: transparent;
+    padding: 0;
+    border: none;
+    color: #a1a1aa;
+  }
+  
+  .modal-body h4 { 
+    font-size: 18px; 
+    font-weight: 600; 
+    margin: 40px 0 16px; 
+    color: var(--color-text-primary); 
+    display: flex;
+    align-items: center;
+  }
+  .modal-body h4::before {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 4px;
+    background: #6366f1;
+    border-radius: 2px;
+    margin-right: 12px;
+  }
+  
+  .modal-nav { 
+    display: flex; 
+    gap: 16px; 
+    padding: 24px 40px; 
+    border-top: 1px solid var(--color-border-tertiary); 
+    background: rgba(255,255,255,0.01);
+    border-bottom-left-radius: var(--border-radius-lg);
+    border-bottom-right-radius: var(--border-radius-lg);
+  }
+  
+  .modal-nav button { 
+    flex: 1; 
+    font-size: 15px; 
+    font-family: var(--font-sans);
+    font-weight: 600;
+    padding: 14px; 
+    border-radius: 12px;
+    border: 1px solid var(--color-border-secondary);
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+  }
+  .modal-nav button:hover {
+    background: var(--color-border-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .modal-nav button:active {
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="header-area">
+    <h1 class="page-title">React Topics Guide</h1>
+    <h2 class="sr-only">React Topics Interactive Reference — Detailed explanations</h2>
+  </div>
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="Search React/Redux topics..." oninput="filterTopics()">
+  </div>
+  <div class="cat-pills" id="cat-pills"></div>
+  <div class="count-label" id="count-label"></div>
+  <div class="topic-grid" id="topic-grid"></div>
+</div>
+
+<div class="modal-bg" id="modal-bg" onclick="closeModalBg(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-header">
+      <div class="modal-num" id="m-num"></div>
+      <div class="modal-title" id="m-title"></div>
+      <div class="modal-cat-badge" id="m-cat"></div>
+    </div>
+    <div class="modal-content-wrapper">
+      <div class="modal-body" id="m-body"></div>
+    </div>
+    <div class="modal-nav">
+      <button onclick="navModal(-1)">← Prev</button>
+      <button onclick="navModal(1)">Next →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const topics = [
+  {n:1, t:"JSX", c:"React Basics", b:`<p>JSX (JavaScript XML) is a syntax extension for JavaScript used in React. It allows you to write HTML-like markup directly inside JavaScript code.</p><h4>Key Features</h4><pre>const element = &lt;h1 className="title"&gt;Hello, {name}!&lt;/h1&gt;;</pre><p>JSX isn't valid JavaScript. It must be transpiled (via Babel, SWC) into <code>React.createElement()</code> (or modern JSX runtime calls). It also helps prevent XSS attacks by escaping values embedded via curly braces.</p>`},
+  {n:2, t:"Components", c:"React Basics", b:`<p>Components are the building blocks of any React application. They let you split the UI into independent, reusable pieces.</p><h4>Function Component</h4><pre>function Welcome(props) {
+  return &lt;h1&gt;Hello, {props.name}&lt;/h1&gt;;
+}</pre><h4>Class Component (Legacy)</h4><pre>class Welcome extends React.Component {
+  render() {
+    return &lt;h1&gt;Hello, {this.props.name}&lt;/h1&gt;;
+  }
+}</pre><p>Modern React almost exclusively uses Function Components along with Hooks.</p>`},
+  {n:3, t:"Props", c:"React Basics", b:`<p>Props (short for "properties") are read-only arguments passed into React components. They are how components talk to each other (from parent to child).</p><h4>Usage</h4><pre>// Parent
+&lt;UserCard name="Afsal" age={28} /&gt;
+
+// Child
+function UserCard(props) {
+  // props are immutable!
+  // props.age = 29; // Error!
+  return &lt;div&gt;{props.name} is {props.age}&lt;/div&gt;;
+}</pre>`},
+  {n:4, t:"Prop Drilling", c:"Architecture", b:`<p>Prop drilling is the process of passing data from a parent component down to a deeply nested child through multiple intermediate components that don't need the data themselves.</p><h4>The Problem</h4><pre>App (has Theme)
+  &rarr; Navbar (passes Theme)
+    &rarr; Menu (passes Theme)
+      &rarr; MenuItem (uses Theme)</pre><p><strong>Solution:</strong> Use Context API, Redux, or Component Composition (passing down React nodes via children) to avoid drilling deep.</p>`},
+  {n:5, t:"Fragments", c:"React Basics", b:`<p>React requires components to return a single top-level element. Fragments let you group a list of children without adding extra nodes (like a <code>&lt;div&gt;</code>) to the DOM.</p><h4>Syntax</h4><pre>// Shorthand (cannot have keys)
+return (
+  &lt;&gt;
+    &lt;ChildA /&gt;
+    &lt;ChildB /&gt;
+  &lt;/&gt;
+);
+
+// Explicit (useful in lists to add 'key')
+return (
+  &lt;React.Fragment key={id}&gt;
+    &lt;td&gt;Data&lt;/td&gt;
+  &lt;/React.Fragment&gt;
+);</pre>`},
+  {n:6, t:"Hooks", c:"React Hooks", b:`<p>Hooks are functions that let you "hook into" React state and lifecycle features from functional components. Introduced in React 16.8.</p><h4>Rules of Hooks</h4><ul><li>Only call Hooks at the top level. Don't call them inside loops, conditions, or nested functions.</li><li>Only call Hooks from React Function Components or Custom Hooks.</li></ul><pre>import { useState, useEffect } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+  useEffect(() => { document.title = \`Count: \${count}\`; }, [count]);
+  return &lt;button onClick={() =&gt; setCount(count + 1)}&gt;{count}&lt;/button&gt;;
+}</pre>`},
+  {n:7, t:"Portals", c:"Advanced React", b:`<p>Portals provide a way to render children into a DOM node that exists outside the DOM hierarchy of the parent component. Ideal for modals, tooltips, and popovers which need to break out of CSS <code>overflow: hidden</code> or <code>z-index</code> context.</p><h4>Usage</h4><pre>import { createPortal } from 'react-dom';
+
+function Modal({ children }) {
+  // Renders inside an element with id="modal-root" in index.html
+  return createPortal(
+    &lt;div className="modal"&gt;{children}&lt;/div&gt;,
+    document.getElementById('modal-root')
+  );
+}</pre><p>Note: Even though it's physically elsewhere in the DOM, a portal still behaves like a normal React child (context and event bubbling work exactly the same).</p>`},
+  {n:8, t:"How React Detects Changes", c:"Core Concepts", b:`<p>React detects changes primarily via state updates (e.g., <code>setState</code> or <code>useState</code> setter calls) and prop changes.</p><h4>The Process</h4><p>When state changes, React calls your component function to get the new Virtual DOM (VDOM). It then uses its Diffing Algorithm to compare the new VDOM against the previous VDOM. Finally, it calculates the minimum set of DOM mutations needed and updates the real DOM.</p><h4>Object Identity</h4><pre>const [user, setUser] = useState({ name: 'Afsal' });
+
+// WON'T trigger re-render (same object reference)
+user.name = 'Dev'; 
+setUser(user); 
+
+// WILL trigger re-render (new object reference)
+setUser({ ...user, name: 'Dev' });</pre><p>React uses strict equality (<code>Object.is</code>) to determine if state has changed.</p>`},
+  {n:9, t:"Adding React to an Existing Website", c:"Ecosystem", b:`<p>React was designed from the start for gradual adoption. You don't need a SPA (Single Page Application) to use it.</p><h4>Steps</h4><pre>&lt;!-- 1. Add small DOM container --&gt;
+&lt;div id="like_button_container"&gt;&lt;/div&gt;
+
+&lt;!-- 2. Load React via CDN --&gt;
+&lt;script src="https://unpkg.com/react@18/umd/react.production.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"&gt;&lt;/script&gt;
+
+&lt;!-- 3. Mount component --&gt;
+&lt;script&gt;
+  const root = ReactDOM.createRoot(document.getElementById('like_button_container'));
+  root.render(React.createElement(LikeButton));
+&lt;/script&gt;</pre>`},
+  {n:10, t:"Reading Viewport Size", c:"Patterns", b:`<p>To read and react to viewport size changes in React, it's best to use a custom hook that runs an effect binding to the <code>resize</code> event.</p><h4>Custom Hook Example</h4><pre>function useWindowSize() {
+  const [size, setSize] = useState([window.innerWidth, window.innerHeight]);
+
+  useEffect(() => {
+    const handleResize = () => setSize([window.innerWidth, window.innerHeight]);
+    window.addEventListener('resize', handleResize);
+    // Cleanup to prevent memory leak
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return size;
+}</pre><p><strong>Optimization tip:</strong> For actual apps, you should throttle or debounce the <code>resize</code> event listener.</p>`},
+  {n:11, t:"createRoot and render", c:"React Basics", b:`<p>In React 18, <code>createRoot</code> replaced the old <code>ReactDOM.render</code> to enable Concurrent Features.</p><h4>Usage</h4><pre>import { createRoot } from 'react-dom/client';
+
+const container = document.getElementById('root');
+const root = createRoot(container); // create a root
+root.render(&lt;App /&gt;); // render your app</pre><h4>Why the change?</h4><p>The old <code>render</code> method caused React to have to unmount and remount or track roots synchronously. <code>createRoot</code> creates an object that tracks your React tree entirely, enabling features like automatic batching and concurrent rendering transitions.</p>`},
+  {n:12, t:"Concurrent Rendering", c:"Advanced React", b:`<p>Concurrent rendering is a behind-the-scenes mechanism in React 18 that allows React to interrupt a heavy rendering task to handle high-priority events (like user typing or clicking). It makes apps feel more responsive.</p><p>Instead of locking the main thread until the entire React tree finishes rendering, React yields control back to the browser recursively. If a more urgent task arrives, React pauses the background render, handles the click, and then resumes (or restarts) the background render.</p><h4>APIs utilizing Concurrent Mode</h4><ul><li><code>useTransition</code> - Mark state updates as non-urgent.</li><li><code>useDeferredValue</code> - Defer rendering a less important part of the tree.</li><li><code>Suspense</code> - Pause rendering while waiting for data/code.</li></ul>`},
+  {n:13, t:"Dynamic Imports", c:"Performance", b:`<p>Dynamic imports let you load modules asynchronously on demand instead of bundling everything upfront. React pairs this with <code>React.lazy</code> and <code>Suspense</code>.</p><h4>Usage</h4><pre>import { lazy, Suspense } from 'react';
+
+// Dynamically imported component
+const HeavyChart = lazy(() => import('./HeavyChart'));
+
+function Dashboard() {
+  return (
+    &lt;Suspense fallback={&lt;Spinner/&gt;}&gt;
+      &lt;HeavyChart /&gt;
+    &lt;/Suspense&gt;
+  );
+}</pre><p>This reduces the initial bundle size, allowing the page to load faster.</p>`},
+  {n:14, t:"Event Pooling", c:"Core Concepts", b:`<p><strong>Note: Event Pooling was REMOVED in React 17!</strong></p><p>In older React (v16 and below), SyntheticEvents were pooled. This meant the event object was reused and its properties wiped out (set to null) immediately after the event callback ran to save memory allocation.</p><h4>The Legacy Issue</h4><pre>// React 16 code:
+function handleChange(e) {
+  setTimeout(() => {
+    console.log(e.target.value); // Error: e.target is null!
+  }, 100);
+}</pre><p>To fix this in React 16, you had to call <code>e.persist()</code>. In React 17+, event pooling is completely gone, and you can safely use the event object asynchronously.</p>`},
+  {n:15, t:"event.persist()", c:"Legacy", b:`<p>In React 16 and earlier, calling <code>e.persist()</code> removed the synthetic event from the pool, allowing references to the event to be retained asynchronously.</p><h4>Legacy Example</h4><pre>function handleInput(e) {
+  e.persist(); // Prevent React from nullifying the event
+  
+  fetch('/search?q=' + e.target.value)
+    .then(res =&gt; console.log(e.target.value)); // works
+}</pre><p><strong>Modern Note:</strong> In React 17+, <code>e.persist()</code> is still available on the SyntheticEvent object for backward compatibility, but it doesn't do anything because events are no longer pooled.</p>`},
+  {n:16, t:"Manipulating Uncontrolled Components", c:"Forms", b:`<p>Uncontrolled components store their own state internally (like standard HTML). You use a <code>ref</code> to query their value directly from the DOM when you need it.</p><h4>Usage</h4><pre>function UncontrolledForm() {
+  const inputRef = useRef(null);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Access DOM directly
+    console.log('Submitted:', inputRef.current.value);
+  };
+
+  return (
+    &lt;form onSubmit={handleSubmit}&gt;
+      &lt;input type="text" ref={inputRef} defaultValue="Afsal" /&gt;
+      &lt;button type="submit"&gt;Send&lt;/button&gt;
+    &lt;/form&gt;
+  );
+}</pre><p>Use uncontrolled components when you integrate React with non-React libraries or don't need real-time validation.</p>`},
+  {n:17, t:"useEffect no dependency array", c:"React Hooks", b:`<p>If you omit the dependency array entirely from a <code>useEffect</code>, the effect will run <strong>after EVERY single render</strong> of the component.</p><h4>Behavior differences</h4><pre>// Runs after EVERY render
+useEffect(() => { console.log('I run a lot'); });
+
+// Runs ONCE on mount
+useEffect(() => { console.log('I run once'); }, []);
+
+// Runs on mount and when 'count' changes
+useEffect(() => { console.log('Count changed'); }, [count]);</pre><p>Omitting the dependency array is rarely what you want, as it can cause serious performance issues or infinite loops if the effect triggers a state update.</p>`},
+  {n:18, t:"Immutability of state", c:"Core Concepts", b:`<p>In React, state should always be treated as immutable. You should never directly modify state variables.</p><h4>Why Immutable?</h4><ol><li>React determines whether to re-render by comparing the old state and new state using <code>Object.is()</code>. If you mutate an object, its reference doesn't change, so React thinks nothing changed and misses the re-render.</li><li>Time-travel debugging (like in Redux) requires distinct copies of state over time.</li></ol><h4>Example</h4><pre>// BAD (Mutation)
+state.items.push('new item');
+setState(state); // No re-render!
+
+// GOOD (Immutable update)
+setState({ ...state, items: [...state.items, 'new item'] });</pre>`},
+  {n:19, t:"Purpose of spreading array and objects before updating state", c:"Patterns", b:`<p>Spreading Arrays <code>[...]</code> and Objects <code>{...}</code> creates a <em>shallow copy</em>. This is how you achieve immutability in JavaScript.</p><h4>Usage in State</h4><pre>// Object update
+setUser(prev =&gt; ({ ...prev, age: prev.age + 1 }));
+
+// Array update (Adding)
+setTodos(prev =&gt; [...prev, newItem]);
+
+// Array update (Modifying)
+setTodos(prev =&gt; prev.map(t =&gt; t.id === id ? { ...t, done: true } : t));</pre><p>Spreading ensures a completely new memory address is returned, triggering React's reconciliation process to re-render the UI correctly.</p>`},
+  {n:20, t:"Why StrictMode renders components twice", c:"Core Concepts", b:`<p>In development mode only, <code>&lt;React.StrictMode&gt;</code> intentionally double-invokes certain lifecycle lifecycles: function component bodies, useState, useMemo, and useReducer initializers.</p><h4>Why?</h4><p>It is a stress test. React intends for render phases to be <strong>pure</strong> (no side-effects). By double-rendering, React helps you easily spot Accidental Side Effects. If a component logic behaves differently on the second render (e.g., mutating an external variable), you'll quickly notice the bug in development.</p><p>This double-render is bypassed entirely when you build your app for production.</p>`},
+  {n:21, t:"class vs className", c:"React Basics", b:`<p>In HTML, you use the <code>class</code> attribute to style elements. However, <code>class</code> is a reserved keyword in JavaScript (used for declaring ES6 Classes).</p><p>Because JSX transpiles to JavaScript via <code>React.createElement</code>, the React team mapped the HTML <code>class</code> attribute to <code>className</code>.</p><h4>Example</h4><pre>// JSX
+const div = &lt;div className="container"&gt;&lt;/div&gt;;
+
+// Compiles to:
+React.createElement('div', { className: 'container' });</pre><p>Note: The same principle applies to <code>for</code> becoming <code>htmlFor</code> in labels.</p>`},
+  {n:22, t:"Framework vs Library", c:"Architecture", b:`<p>React is technically a <strong>UI Library</strong>, not a Framework.</p><h4>The Difference</h4><p><strong>Inversion of Control:</strong> In a library, you are in charge of the flow of the application. You call the library when you need it. In a framework (like Angular or Next.js), the framework is in charge of the flow; it gives you places to plug your code in.</p><p>React only cares about rendering the UI and handling state. To build a full app with basic React, you must bring your own router (React Router), state management (Redux/Zustand), and data-fetching tools (TanStack Query).</p>`},
+  {n:23, t:"Single Page vs Multi Page", c:"Architecture", b:`<p><strong>Multi-Page Application (MPA)</strong>: Traditional websites (PHP, Django). Every link click requires the browser to request an entirely new HTML page from the server, causing a full page refresh.</p><p><strong>Single-Page Application (SPA)</strong>: React apps are typically SPAs. Only one HTML file (index.html) is ever loaded. When navigating, JavaScript intercepts the click, dynamically unmounts/mounts components, and fetches data via AJAX. Because there's no page refresh, navigation feels instantaneous.</p><p><em>Next.js/Remix</em> blend the two by doing SSR (Server Side Rendering), but hydrate into an SPA after the first load.</p>`},
+  {n:24, t:"Cleanup Function", c:"React Hooks", b:`<p>The optional return function inside <code>useEffect</code> is called the cleanup function. It runs before the component unmounts, and before the effect runs again on subsequent renders.</p><h4>Crucial for memory leaks</h4><pre>useEffect(() => {
+  const socket = new WebSocket(url);
+  
+  // Cleanup
+  return () => {
+    socket.close(); // prevents hanging connections when component hides
+  };
+}, [url]);</pre><p>You must clean up things like intervals (<code>setInterval</code>), event listeners, WebSockets, or abortable fetch requests.</p>`},
+  {n:25, t:"Automatic Batching", c:"Performance", b:`<p>Batching is when React groups multiple state updates into a single re-render to increase performance.</p><p>Before React 18, React only batched updates happening inside React event handlers (like onClick). Updates in Promises, setTimeout, or native event handlers triggered separate re-renders.</p><h4>React 18 Automatic Batching</h4><pre>setTimeout(() => {
+  setCount(c => c + 1); // no immediate render
+  setFlag(f => !f);     // no immediate render
+  // React 18 batches both, triggering only ONE re-render!
+}, 1000);</pre><p>If you urgently need to bypass batching, use <code>flushSync</code>.</p>`},
+  {n:26, t:"Code Splitting", c:"Performance", b:`<p>Code splitting is taking one large compiled JavaScript bundle and splitting it into smaller chunks that can be lazy-loaded on demand.</p><h4>Why use it?</h4><p>Loading a 5MB bundle on page load causes a slow First Contentful Paint. Code splitting ensures a user only downloads the JS necessary for the page they are currently on.</p><h4>Example with React</h4><pre>import { lazy, Suspense } from 'react';
+
+// Using dynamic import
+const SettingsPage = lazy(() => import('./SettingsPage'));
+
+function App() {
+  return (
+    &lt;Suspense fallback={&lt;Spinner/&gt;}&gt;
+      &lt;SettingsPage /&gt;
+    &lt;/Suspense&gt;
+  )
+}</pre>`},
+  {n:27, t:"useLayoutEffect", c:"React Hooks", b:`<p><code>useLayoutEffect</code> has the exact same API as <code>useEffect</code>, but it fires <strong>synchronously after all DOM mutations</strong>, but BEFORE the browser has painted those changes to the screen.</p><h4>When to use it</h4><p>Use it only when you need to read layout from the DOM (like getting an element's scroll position or height) and synchronously re-render to avoid visual flickering. 99% of the time, you should stick to <code>useEffect</code>.</p><pre>useLayoutEffect(() => {
+  // Read DOM layout here before user sees it
+  const height = ref.current.clientHeight;
+  setTopPosition(height); 
+}, []);</pre>`},
+  {n:28, t:"useRef", c:"React Hooks", b:`<p><code>useRef</code> returns a mutable object whose <code>.current</code> property persists across renders. Changing it <strong>does not trigger a re-render</strong>.</p><h4>Two Main Use Cases</h4><ol><li><strong>Accessing DOM nodes:</strong> Focusing an input.<pre>const inputRef = useRef();
+...
+&lt;input ref={inputRef} /&gt;
+inputRef.current.focus();</pre></li><li><strong>Storing mutable instance variables:</strong> Storing interval IDs or tracking previous state without causing infinite re-render loops.</li></ol>`},
+  {n:29, t:"useEffect", c:"React Hooks", b:`<p><code>useEffect</code> allows you to perform side effects in functional components. A side effect is anything outside the scope of React (API calls, DOM manipulation, timers).</p><h4>Dependency Array</h4><ul><li><code>useEffect(() => {...})</code>: Runs on mount and on EVERY render.</li><li><code>useEffect(() => {...}, [])</code>: Runs ONLY on mount.</li><li><code>useEffect(() => {...}, [id])</code>: Runs on mount and whenever <code>id</code> changes.</li></ul><p>It runs asynchronously *after* the browser has painted the screen.</p>`},
+  {n:30, t:"useState", c:"React Hooks", b:`<p><code>useState</code> is the primary hook for adding state to functional components. It returns an array with the current state value and a function to update it.</p><h4>Usage</h4><pre>const [count, setCount] = useState(0);
+
+// Direct update
+setCount(count + 1);
+
+// Functional update (best when based on previous state)
+setCount(prevCount =&gt; prevCount + 1);</pre><p><strong>Lazy Initialization:</strong> You can pass a function to <code>useState</code> for expensive computations. It will only run on the first render: <code>useState(() => expensiveCalculation())</code>.</p>`},
+  {n:31, t:"useReducer", c:"React Hooks", b:`<p><code>useReducer</code> is an alternative to <code>useState</code> for complex state logic involving multiple sub-values or when the next state depends on the previous one. It borrows heavily from Redux mechanics.</p><h4>Usage</h4><pre>function reducer(state, action) {
+  switch (action.type) {
+    case 'increment': return { count: state.count + 1 };
+    case 'decrement': return { count: state.count - 1 };
+    default: return state;
+  }
+}
+
+function Counter() {
+  const [state, dispatch] = useReducer(reducer, { count: 0 });
+  return &lt;button onClick={() =&gt; dispatch({type: 'increment'})}&gt;
+    {state.count}
+  &lt;/button&gt;;
+}</pre>`},
+  {n:32, t:"useParams", c:"Routing", b:`<p><code>useParams</code> is a hook provided by React Router. It allows you to access dynamic parameters from the current URL.</p><h4>Usage</h4><pre>import { useParams } from 'react-router-dom';
+
+// Route setup: &lt;Route path="/users/:id" element={&lt;Profile /&gt;} /&gt;
+
+function Profile() {
+  // If URL is /users/123, id will be "123"
+  const { id } = useParams(); 
+  
+  useEffect(() => {
+    fetchUser(id);
+  }, [id]);
+  
+  return &lt;div&gt;Profile for user {id}&lt;/div&gt;;
+}</pre>`},
+  {n:33, t:"useCallback", c:"Performance", b:`<p><code>useCallback</code> caches the definition of a function between renders so its memory reference doesn't change.</p><h4>Why?</h4><p>If you pass a function as a prop to a memoized child component (using <code>React.memo</code>), the child will unnecessarily re-render every time the parent renders because the function reference changes. <code>useCallback</code> prevents this.</p><pre>const handleSubmit = useCallback((data) => {
+  api.submit(data, dependency);
+}, [dependency]); // Re-create function only if dependency changes</pre><p>Don't use it everywhere; the overhead of tracking dependencies is worse than creating standard functions unless passing down to heavy child components.</p>`},
+  {n:34, t:"useDebugValue", c:"React Hooks", b:`<p><code>useDebugValue</code> can be used to display a label for custom hooks in React DevTools. It sits inside your custom hook.</p><h4>Usage</h4><pre>function useOnlineStatus() {
+  const [isOnline, setIsOnline] = useState(true);
+  
+  // Format the label for React DevTools
+  useDebugValue(isOnline ? 'Online' : 'Offline');
+  
+  return isOnline;
+}</pre><p>In React DevTools, instead of just displaying the hooks internals, you will see a badge reading "OnlineStatus: 'Online'". Only use this in shared/complex custom hooks.</p>`},
+  {n:35, t:"useTransition", c:"Advanced React", b:`<p><code>useTransition</code> (React 18) lets you mark a state update as a "transition" (non-urgent). It tells React to render the UI for a high-priority event (like typing) immediately, while processing the transition in the background.</p><h4>Usage</h4><pre>const [isPending, startTransition] = useTransition();
+const [query, setQuery] = useState('');
+
+function handleChange(e) {
+  // typing in the input is urgent
+  setInputValue(e.target.value); 
+  
+  // Updating a massive list is non-urgent
+  startTransition(() => {
+    setQuery(e.target.value);
+  });
+}
+
+// UI can show a spinner if isPending is true</pre>`},
+  {n:36, t:"useDeferredValue", c:"Advanced React", b:`<p><code>useDeferredValue</code> (React 18) lets you defer updating a part of the UI. It returns a deferred version of the value that "lags behind" the original value for a few frames if the computer is busy context-switching.</p><h4>Usage</h4><pre>const [text, setText] = useState('');
+// deferredText will lag behind text if CPU is busy
+const deferredText = useDeferredValue(text);
+
+return (
+  &lt;&gt;
+    &lt;input value={text} onChange={e =&gt; setText(e.target.value)} /&gt;
+    &lt;HeavyList text={deferredText} /&gt;
+  &lt;/&gt;
+);</pre><p>Useful when replacing a debounce/throttle for UI responsiveness without dropping intermediate frames.</p>`},
+  {n:37, t:"useImperativeHandle", c:"Advanced React", b:`<p><code>useImperativeHandle</code> customizes the instance value that is exposed to parent components when using <code>ref</code>. It must be used with <code>forwardRef</code>.</p><h4>Usage</h4><p>Instead of exposing a massive DOM node to the parent, you can expose only specific, safe methods.</p><pre>const FancyInput = forwardRef((props, ref) => {
+  const inputRef = useRef();
+  
+  useImperativeHandle(ref, () => ({
+    focusAndClear: () => {
+      inputRef.current.value = '';
+      inputRef.current.focus();
+    }
+  }));
+  
+  return &lt;input ref={inputRef} /&gt;;
+});
+
+// Parent can call childRef.current.focusAndClear()</pre>`},
+  {n:38, t:"CSR vs SSR", c:"Architecture", b:`<p><strong>Client Side Rendering (CSR)</strong> (Standard React): User receives an empty HTML file with a <code>&lt;div id="root"&gt;</code> and a JS bundle. The browser downloads the JS and React executes to generate the HTML. Slower initial load, bad for SEO, but great interactive SPAs.</p><p><strong>Server Side Rendering (SSR)</strong> (Next.js): React runs on the server. The server sends fully formed HTML to the browser. The user sees the page instantly (great for SEO). Then, React loads in the background and "hydrates" the DOM to make it interactive.</p>`},
+  {n:39, t:"Shadow DOM", c:"Web Standards", b:`<p>The Shadow DOM is a web standard that allows encapsulation of DOM trees and CSS. It prevents CSS from bleeding in or out. (e.g., how the video player controls are hidden inside a <code>&lt;video&gt;</code> tag).</p><h4>Is Virtual DOM the same?</h4><p><strong>Absolutely NOT.</strong> The Virtual DOM is a React concept—a lightweight javascript object representation of the real DOM. The Shadow DOM is a browser technology for scoped encapsulation. React does not use the Shadow DOM by default (though you can render React components into a shadow root).</p>`},
+  {n:40, t:"React.memo", c:"Performance", b:`<p><code>React.memo</code> is a Higher Order Component that wraps a functional component. It memoizes the result.</p><p>Normally, if a parent component renders, all its children re-render. If a child is wrapped in <code>React.memo</code>, React will only re-render the child if its <strong>props</strong> have changed (using a shallow comparison).</p><h4>Usage</h4><pre>const HeavyChild = React.memo(function HeavyChild(props) {
+  /* render logic */
+});</pre><p>Pairs strongly with <code>useCallback</code> to prevent passing new function references which would break the memoization.</p>`},
+  {n:41, t:"Suspense", c:"Advanced React", b:`<p><code>&lt;Suspense&gt;</code> lets you specify a fallback UI (like a loading spinner) in case some components further down the tree are not ready to render.</p><p>It is used mostly for two things: lazy loading components (code splitting) and data fetching (with libraries like Relay, Next.js, or React 19's <code>use()</code>).</p><h4>Usage</h4><pre>&lt;Suspense fallback={&lt;h1&gt;Loading component...&lt;/h1&gt;}&gt;
+  &lt;LazyWidget /&gt;
+&lt;/Suspense&gt;</pre><p>If <code>LazyWidget</code> throws a Promise while rendering, Suspense catches it and renders the fallback until the Promise resolves.</p>`},
+  {n:42, t:"Native Event", c:"Events", b:`<p>A Native Event is the actual event object fired by the browser (e.g., <code>MouseEvent</code>, <code>KeyboardEvent</code>). React wraps native events in its own cross-browser wrapper.</p><p>You can access the underlying native event in React by calling <code>e.nativeEvent</code>.</p><pre>function handleClick(e) {
+  console.log('React Event:', e);
+  console.log('Browser Event:', e.nativeEvent);
+}</pre>`},
+  {n:43, t:"Synthetic Event", c:"Events", b:`<p>A Synthetic Event is React's cross-browser wrapper around the browser's native event. It has the same interface as the native event (e.g., <code>e.stopPropagation()</code>, <code>e.preventDefault()</code>), taking out browser inconsistencies (like IE vs Chrome standard differences).</p><p>When you attach an <code>onClick</code> in React, you are receiving a SyntheticEvent, not a native DOM event.</p>`},
+  {n:44, t:"Event Delegation", c:"Events", b:`<p>Instead of attaching an event listener to every single node (like 100 <code>&lt;li&gt;</code> items), you attach <strong>one</strong> listener to their parent (the <code>&lt;ul&gt;</code>). The browser "bubbles" the event up, and you check <code>e.target</code> to see what was clicked.</p><p><strong>React heavily uses Event Delegation!</strong> Instead of adding <code>onClick</code> to individual DOM nodes, React 17+ attaches ONE large event listener per event type to the root container (<code>&lt;div id="root"&gt;</code>). React intercepts it and maps it back to your synthetic event handlers in the VDOM.</p>`},
+  {n:45, t:"React Strict Mode", c:"Core Concepts", b:`<p><code>&lt;React.StrictMode&gt;</code> is a wrapper component that checks your code for potential problems during development. It does not render anything to the DOM.</p><h4>What it checks</h4><ul><li>Identifying components with unsafe lifecycles</li><li>Warning about legacy API usage (e.g., string refs)</li><li>Detecting unexpected side effects (by double-rendering components)</li><li>Warning about deprecated findDOMNode usage</li></ul><p>Strict mode checks are run in <strong>development mode only</strong>; they do not impact the production build.</p>`},
+  {n:46, t:"How to pass state with useNavigate", c:"Routing", b:`<p>In React Router, you can pass state secretly via the route history object without it appearing in the URL. Useful for flash messages or passing complex objects across pages.</p><h4>Sender</h4><pre>const navigate = useNavigate();
+navigate('/dashboard', { state: { fromLogin: true, user: "Afsal" } });</pre><h4>Receiver</h4><pre>import { useLocation } from 'react-router-dom';
+
+function Dashboard() {
+  const location = useLocation();
+  const state = location.state;
+  console.log(state?.fromLogin); // true
+}</pre>`},
+  {n:47, t:"Pure Component", c:"Architecture", b:`<p>In legacy React, <code>React.PureComponent</code> is exactly like <code>React.Component</code>, but it implements <code>shouldComponentUpdate()</code> automatically using a shallow prop and state comparison.</p><p>If the props and state haven't changed, a PureComponent will NOT re-render, saving performance.</p><h4>Modern equivalent</h4><p>The modern functional component equivalent to <code>PureComponent</code> is wrapping the component in <code>React.memo()</code>.</p>`},
+  {n:48, t:"Uncontrolled vs Controlled Components", c:"Forms", b:`<p><strong>Controlled:</strong> The form data is handled directly by React state. The state is the "single source of truth."</p><pre>&lt;input 
+  value={name} 
+  onChange={e =&gt; setName(e.target.value)} 
+/&gt;</pre><p><strong>Uncontrolled:</strong> The form data is handled by the DOM itself. You pull the value using a <code>ref</code> when needed (e.g., on submit).</p><pre>const inputRef = useRef();
+&lt;input ref={inputRef} defaultValue="Afsal" /&gt;</pre>`},
+  {n:49, t:"React Fiber", c:"Core Concepts", b:`<p>React Fiber is the core internal reconciliation engine introduced in React 16. It replaces the old "Stack Reconciler".</p><h4>The Goal</h4><p>The primary goal of Fiber is to enable <strong>incremental rendering</strong>. It allows React to pause rendering work, yield to the browser to handle user input/animations, and resume or abort the render later.</p><p>Each "Fiber" is a JS object representing a unit of work (essentially a component instance on the tree). This structure allows React to traverse the tree as an interruptible linked list instead of a rigid call stack.</p>`},
+  {n:50, t:"Flux", c:"Architecture", b:`<p>Flux is an architectural pattern created by Facebook for building client-side web applications. It prescribes a strict unidirectional data flow.</p><h4>The Flow</h4><p>Action &rarr; Dispatcher &rarr; Store &rarr; View</p><ul><li><strong>View:</strong> The React component. Triggers an action.</li><li><strong>Action:</strong> A simple object describing what happened.</li><li><strong>Dispatcher:</strong> Receives actions and broadcasts them to all stores.</li><li><strong>Store:</strong> Holds the app state and logic. Updates and emits a change event to the View.</li></ul><p>Redux is the most famous spiritual successor to Flux.</p>`},
+  {n:51, t:"Why can't hooks be used in conditionals?", c:"React Hooks", b:`<p>React relies on the <strong>call order</strong> of hooks to associate local state and effects with the correct variables.</p><pre>function App() {
+  const [name, setName] = useState('Afsal'); // Hook 1
+  if (name !== 'Afsal') {
+    useEffect(...); // Hook 2
+  }
+  const [age, setAge] = useState(28); // Hook 3
+}</pre><p>If the <code>if</code> condition changes between renders, Hook 2 is skipped. React's internal array of hooks shifts by one index. It will mistakenly assign the state of <code>age</code> to the <code>useEffect</code> hook, causing massive bugs. Thus, Hooks must unconditionally reside at the top level.</p>`},
+  {n:52, t:"Reading query params", c:"Routing", b:`<p>Using React Router's <code>useSearchParams</code> hook to read standard URL query strings (e.g., <code>?sort=asc&page=2</code>).</p><h4>Usage</h4><pre>import { useSearchParams } from 'react-router-dom';
+
+function Shop() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const sortOrder = searchParams.get('sort'); // 'asc'
+  
+  const updateQuery = () => {
+    setSearchParams({ sort: 'desc' });
+  };
+}</pre>`},
+  {n:53, t:"Higher Order Components (HOC)", c:"Architecture", b:`<p>An HOC is an advanced technique for reusing component logic. It is a function that takes a component and returns a new component wrapped in additional logic.</p><h4>Example: Auth Guard</h4><pre>function withAuth(WrappedComponent) {
+  return function EnhancedComponent(props) {
+    const isAuth = checkAuth();
+    if (!isAuth) return &lt;Redirect to="/login" /&gt;;
+    return &lt;WrappedComponent {...props} /&gt;;
+  };
+}
+
+const ProtectedDashboard = withAuth(Dashboard);</pre><p>Note: Custom Hooks have largely replaced HOCs as they avoid "wrapper hell."</p>`},
+  {n:54, t:"Create pure component", c:"Architecture", b:`<p>Creating a pure component ensures that it only re-renders when its props explicitly change.</p><h4>In Functional Components</h4><pre>import { memo } from 'react';
+
+const UserAvatar = memo(function UserAvatar({ url }) {
+  console.log("Only runs if URL changes");
+  return &lt;img src={url} /&gt;;
+});</pre><h4>In Class Components</h4><pre>class UserAvatar extends React.PureComponent {
+  render() { return &lt;img src={this.props.url} /&gt;; }
+}</pre>`},
+  {n:55, t:"ES Modules", c:"Ecosystem", b:`<p>ECMAScript (ES) Modules are the official standard format to package JavaScript code for reuse.</p><h4>Syntax</h4><pre>// Exporting (math.js)
+export const add = (a, b) =&gt; a + b; // Named export
+export default function multiply(a,b) { return a*b; } // Default export
+
+// Importing (app.js)
+import multiply, { add } from './math.js';</pre><p>React heavily relies on ES modules to import components, images, and CSS. Tools like Webpack/Vite bundle these modules together.</p>`},
+  {n:56, t:"Change values in useRef", c:"React Hooks", b:`<p>To change the value stored in a <code>useRef</code>, you modify its <code>.current</code> property. It acts like a mutable instance variable.</p><pre>function Timer() {
+  const countRef = useRef(0);
+
+  const increment = () => {
+    // This value updates instantly but does NOT cause a re-render
+    countRef.current += 1; 
+    console.log(countRef.current);
+  };
+}</pre><p>Because it doesn't trigger a render, never use <code>ref.current</code> to display information directly in your JSX (it won't update visually).</p>`},
+  {n:57, t:"useRef vs regular variables to hold value", c:"React Hooks", b:`<p>Why use <code>useRef</code> instead of just declaring a <code>let</code> variable?</p><h4>Regular let/const outside component</h4><p>It is globally shared across ALL instances of the component. A huge bug if you render a component twice.</p><h4>Regular let/const inside component</h4><p>It gets completely destroyed and re-initialized every time the component re-renders.</p><h4>useRef</h4><p>Survives re-renders perfectly AND is strictly scoped to the specific component instance.</p>`},
+  {n:58, t:"Render props", c:"Architecture", b:`<p>Render props refers to a technique for sharing code between React components using a prop whose value is a function.</p><h4>Example</h4><pre>function MouseTracker({ render }) {
+  const [pos, setPos] = useState({x:0, y:0});
+  // attach mouse move listeners to update pos
+  
+  return render(pos); // We delegate rendering to the user!
+}
+
+// Usage
+&lt;MouseTracker
+  render={pos =&gt; &lt;h1&gt;Mouse is at {pos.x}, {pos.y}&lt;/h1&gt;}
+/&gt;</pre><p>Custom Hooks have largely replaced Render Props, but Render Props are still useful for complex UI layout delegates.</p>`},
+  {n:59, t:"PropTypes", c:"React Basics", b:`<p><code>prop-types</code> is a utility library (formerly built into React) used for runtime type checking of props.</p><h4>Usage</h4><pre>import PropTypes from 'prop-types';
+
+function Greeting({ name, age }) { ... }
+
+Greeting.propTypes = {
+  name: PropTypes.string.isRequired,
+  age: PropTypes.number
+};</pre><p>If you pass an invalid type in development, you get a nasty console warning. <strong>Modern Note:</strong> TypeScript has largely replaced PropTypes in the React ecosystem.</p>`},
+  {n:60, t:"React Profiler", c:"Advanced React", b:`<p>The React Profiler measures the rendering performance of a React application tree. It helps identify cost bottlenecks.</p><h4>Programmatic usage</h4><pre>import { Profiler } from 'react';
+
+function onRenderCallback(id, phase, actualDuration) {
+  console.log(\`\${id} took \${actualDuration}ms\`);
+}
+
+&lt;Profiler id="Navigation" onRender={onRenderCallback}&gt;
+  &lt;NavMenu /&gt;
+&lt;/Profiler&gt;</pre><p>You can also access the visual Profiler tab in the React DevTools browser extension to record and view flamegraphs of renders.</p>`},
+  {n:61, t:"Diffing Algorithm", c:"Core Concepts", b:`<p>React's Diffing algorithm is a heuristic process to update the DOM efficiently. Comparing two standard trees is O(n³), which is too slow. React makes two assumptions to reduce it to O(n):</p><ol><li><strong>Element Types:</strong> Two elements of different types (<code>&lt;div&gt;</code> to <code>&lt;span&gt;</code>) will produce entirely different trees. React destroys the old tree and builds a new one.</li><li><strong>Keys:</strong> The developer hints at stable identities across renders using a <code>key</code> prop (e.g., in lists). This allows React to move nodes instead of re-creating them.</li></ol>`},
+  {n:62, t:"Transpiler", c:"Ecosystem", b:`<p>A Transpiler (source-to-source compiler) translates source code from one high-level language to another language at a similar abstraction level.</p><p>In the React world, <strong>Babel</strong> or <strong>SWC</strong> are transpilers. They take JSX (which browsers don't understand) and modern ES6/TypeScript features and transpile them down to standard vanilla ES5 Javascript that any browser can execute.</p>`},
+  {n:63, t:"Babel", c:"Ecosystem", b:`<p>Babel is the most popular JavaScript compiler. It is primarily used to convert ECMAScript 2015+ (ES6) code into a backward-compatible version of JavaScript.</p><h4>React Preset</h4><p>Babel uses plugins to understand syntax. <code>@babel/preset-react</code> is the preset that tells Babel: "When you see JSX <code>&lt;h1&gt;Hi&lt;/h1&gt;</code>, transform it into <code>React.createElement('h1', null, 'Hi')</code>."</p>`},
+  {n:64, t:"Webpack", c:"Ecosystem", b:`<p>Webpack is a static module bundler. When it processes your application, it maps out a dependency graph (following your <code>import</code> statements) and packages all those files (JS, CSS, Images, SVGs) into one or more lightweight bundles to be served to the browser.</p><p>While powerful, Webpack configurations can be incredibly complex. Modern replacements like Vite and esbuild are much faster because they handle native ES modules natively in development.</p>`},
+  {n:65, t:"Forward Ref", c:"Advanced React", b:`<p><code>React.forwardRef</code> lets a component opt into receiving a <code>ref</code> from its parent and forwarding it to a child DOM node.</p><h4>Usage</h4><pre>const CustomButton = React.forwardRef((props, ref) => (
+  &lt;button ref={ref} className="chic-btn"&gt;
+    {props.children}
+  &lt;/button&gt;
+));
+
+// Parent creates ref and passes it
+const ref = useRef();
+&lt;CustomButton ref={ref} /&gt;
+ref.current.focus(); // Focuses the raw &lt;button&gt; directly</pre>`},
+  {n:66, t:"Error Boundary", c:"Advanced React", b:`<p>Error boundaries are React components that catch inside child component trees, log those errors, and display a fallback UI instead of crashing the whole app.</p><p>Currently, Error Boundaries <strong>must</strong> be Class Components. There is no Hook equivalent yet.</p><h4>Usage</h4><pre>class ErrorBoundary extends React.Component {
+  state = { hasError: false };
+  static getDerivedStateFromError(error) { return { hasError: true }; }
+  
+  render() {
+    if (this.state.hasError) return &lt;h1&gt;Something broke.&lt;/h1&gt;;
+    return this.props.children;
+  }
+}
+
+// Wrap your app
+&lt;ErrorBoundary&gt;&lt;App /&gt;&lt;/ErrorBoundary&gt;</pre>`},
+  {n:67, t:"Redux Core", c:"Redux", b:`<p>Redux is a predictable state container. It manages global state separately from components.</p><h4>Three Principles</h4><ol><li><strong>Single source of truth:</strong> The global state is stored in an object tree within a single store.</li><li><strong>State is read-only:</strong> The only way to change the state is to emit an <em>action</em>.</li><li><strong>Changes are made with pure functions:</strong> To specify how the state tree is transformed, you write pure <em>reducers</em>.</li></ol>`},
+  {n:68, t:"Store, State, Subscription, Dispatch", c:"Redux", b:`<ul>
+    <li><strong>Store:</strong> The central vault containing the state. Created via <code>configureStore()</code>.</li>
+    <li><strong>State:</strong> The giant read-only object representing the UI data.</li>
+    <li><strong>Dispatch:</strong> The only function used to trigger state changes. You <code>dispatch(action)</code> to send an object to the store.</li>
+    <li><strong>Subscription:</strong> Listeners bound to the store. When state updates, the store triggers subscriptions causing React to re-render. Usually handled under the hood by <code>react-redux</code>.</li>
+  </ul>`},
+  {n:69, t:"useSelector, useDispatch", c:"Redux", b:`<p>The modern Hooks for connecting a React component to Redux.</p><h4>useSelector</h4><p>Extracts data from the Redux store state. It automatically subscribes the component to updates for that specific slice of state.</p><pre>const count = useSelector(state =&gt; state.counter.value);</pre><h4>useDispatch</h4><p>Returns the <code>dispatch</code> function allowing the component to send actions.</p><pre>const dispatch = useDispatch();
+dispatch({ type: 'increment' });</pre>`},
+  {n:70, t:"Reducer", c:"Redux", b:`<p>A reducer is a pure function that takes the previous state and an action, and returns the next state. It must never mutate the origin state.</p><h4>Format</h4><pre>const initialState = { value: 0 };
+
+function counterReducer(state = initialState, action) {
+  switch (action.type) {
+    case 'increment':
+      return { ...state, value: state.value + 1 };
+    default:
+      return state;
+  }
+}</pre><p>Reducers must be synchronous and possess no side-effects (no API calls).</p>`},
+  {n:71, t:"Provider", c:"Redux", b:`<p>The <code>&lt;Provider&gt;</code> is a React component given by the <code>react-redux</code> library. It uses the Context API under the hood to make the Redux store available to any nested components.</p><h4>Usage</h4><pre>import { Provider } from 'react-redux';
+import { store } from './store';
+
+// At the very root of your app:
+const root = createRoot(document.getElementById('root'));
+root.render(
+  &lt;Provider store={store}&gt;
+    &lt;App /&gt;
+  &lt;/Provider&gt;
+);</pre>`},
+  {n:72, t:"Connect, mapStateToProps, mapDispatchToProps", c:"Redux", b:`<p><strong>Note: Legacy API. Use hooks instead!</strong></p><p><code>connect()</code> is a Higher Order Component that connects a class component to the Redux store.</p><ul><li><strong>mapStateToProps:</strong> Function mapping store state to component props.</li><li><strong>mapDispatchToProps:</strong> Function mapping action dispatcher functions to props.</li></ul><pre>function mapStateToProps(state) { return { count: state.value }; }
+
+// component receives \`this.props.count\`
+export default connect(mapStateToProps)(Counter);</pre>`},
+  {n:73, t:"Combine Reducers", c:"Redux", b:`<p>As apps grow, writing one massive reducer function becomes impossible. <code>combineReducers</code> is a utility to merge multiple slice-reducers into one single root reducer.</p><h4>Usage</h4><pre>import { combineReducers } from 'redux';
+import userReducer from './user';
+import cartReducer from './cart';
+
+const rootReducer = combineReducers({
+  user: userReducer, // Access state via state.user
+  cart: cartReducer  // Access state via state.cart
+});</pre><p><em>Redux Toolkit's <code>configureStore</code> does this automatically.</em></p>`},
+  {n:74, t:"Action Creator", c:"Redux", b:`<p>An action creator is simply a function that returns an Action object. It saves you from hardcoding the action object everywhere.</p><h4>Usage</h4><pre>// Action Creator
+function addItem(text) {
+  return {
+    type: 'ADD_ITEM',
+    payload: text
+  };
+}
+
+// In component
+dispatch(addItem('Buy Milk'));</pre>`},
+  {n:75, t:"Middlewares in Redux", c:"Redux", b:`<p>Redux middleware provides a third-party extension point between dispatching an action, and the moment it reaches the reducer.</p><p>They form a pipeline. Middleware is used for logging, crash reporting, routing, and handling asynchronous API requests.</p><p>Flow: Action &rarr; Middleware 1 &rarr; Middleware 2 &rarr; Reducer.</p><p>Common middlewares: <em>redux-logger</em>, <em>redux-thunk</em>, <em>redux-saga</em>.</p>`},
+  {n:76, t:"Thunk and Logger", c:"Redux", b:`<p><strong>Redux Thunk:</strong> A middleware that allows you to write Action Creators that return a function instead of an action object. This function receives <code>dispatch</code> and <code>getState</code> as arguments. Essential for async API calls.</p><pre>const fetchUser = (id) =&gt; async (dispatch) =&gt; {
+  dispatch({ type: 'LOADING' });
+  const data = await api.getUser(id);
+  dispatch({ type: 'SUCCESS', payload: data });
+};</pre><p><strong>Redux Logger:</strong> A middleware that beautifully logs previous state, action, and next state in the browser console.</p>`},
+  {n:77, t:"Saga", c:"Redux", b:`<p><strong>Redux Saga:</strong> An alternative middleware to Thunk for handling async operations. It uses ES6 Generator functions to abstract async flows. It makes code easier to test and handles complex concurrency.</p><h4>Concept</h4><p>You write "Sagas" which act like separate threads listening for actions. When an action is heard, they wake up, perform async work (pausing via <code>yield</code>), and dispatch new actions.</p><pre>function* fetchUserSaga(action) {
+  try {
+    const user = yield call(Api.fetchUser, action.userId);
+    yield put({type: "SUCCESS", user: user});
+  } catch (e) {
+    yield put({type: "FAILED", message: e.message});
+  }
+}</pre>`},
+  {n:78, t:"Redux Toolkit", c:"Redux", b:`<p>Redux Toolkit (RTK) is the official, opinionated, batteries-included toolset for Redux development. It eliminates boilerplates.</p><h4>Key Features</h4><ul><li><code>configureStore()</code>: Automatically sets up Thunk, DevTools, and root reducer.</li><li><code>createSlice()</code>: Auto-generates action creators and types. Uses the Immer library so you can write "mutating" logic that becomes immutable safely in reducers!</li><li><code>RTK Query</code>: Powerful data fetching and caching tool.</li></ul><p>RTK is the standard way to write Redux in modern apps.</p>`},
+  {n:79, t:"Redux Persistor", c:"Redux", b:`<p><code>redux-persist</code> is a library used to save the Redux store into local storage (or AsyncStorage in React Native).</p><p>When the user refreshes the page, the persistor intercepts the initialization and automatically "rehydrates" the Redux store with the saved data, preventing the user from getting logged out or losing their cart.</p>`},
+  {n:80, t:"UseContext", c:"React Hooks", b:`<p><code>useContext</code> provides a way to pass data through the component tree without having to pass props down manually at every level (solves prop drilling).</p><h4>Usage</h4><pre>const ThemeContext = createContext('light');
+
+function App() {
+  return (
+    &lt;ThemeContext.Provider value="dark"&gt;
+      &lt;Toolbar /&gt;
+    &lt;/ThemeContext.Provider&gt;
+  );
+}
+
+function Toolbar() {
+  // Pulls "dark" directly bypassing intermediate nodes
+  const theme = useContext(ThemeContext); 
+  return &lt;div className={theme}&gt;Buttons&lt;/div&gt;;
+}</pre><p>Not a complete replacement for Redux. Context triggers re-renders on every consumer when the value changes, which can hurt performance for high-frequency state updates.</p>`}
+];
+
+const categories = [...new Set(topics.map(t => t.c))];
+
+let activeCategory = null;
+let filteredTopics = [...topics];
+let currentModalIdx = 0;
+
+function renderPills() {
+  const container = document.getElementById('cat-pills');
+  container.innerHTML = '<button class="pill active" onclick="setCategory(null)">All</button>' +
+    categories.map(c => `<button class="pill" onclick="setCategory('${c}')">${c}</button>`).join('');
+}
+
+function setCategory(cat) {
+  activeCategory = cat;
+  document.querySelectorAll('.pill').forEach(p => {
+    p.classList.toggle('active', cat === null ? p.textContent === 'All' : p.textContent === cat);
+  });
+  filterTopics();
+}
+
+function filterTopics() {
+  const q = document.getElementById('search').value.toLowerCase();
+  filteredTopics = topics.filter(t => {
+    const matchCat = !activeCategory || t.c === activeCategory;
+    const matchQ = !q || t.t.toLowerCase().includes(q) || t.c.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  renderGrid();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('topic-grid');
+  document.getElementById('count-label').textContent = filteredTopics.length + ' topics';
+  grid.innerHTML = filteredTopics.map((t) =>
+    `<div class="card" onclick="openModal(${t.n})">
+      <div class="card-num">#${t.n}</div>
+      <div class="card-title">${t.t}</div>
+      <div class="card-cat">${t.c}</div>
+    </div>`
+  ).join('');
+}
+
+function openModal(n) {
+  const topic = topics.find(t => t.n === n);
+  if (!topic) return;
+  currentModalIdx = filteredTopics.findIndex(t => t.n === n);
+  showTopic(topic);
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function showTopic(t) {
+  document.getElementById('m-num').textContent = '#' + t.n;
+  document.getElementById('m-title').textContent = t.t;
+  document.getElementById('m-cat').textContent = t.c;
+  document.getElementById('m-body').innerHTML = t.b;
+}
+
+function navModal(dir) {
+  if (filteredTopics.length === 0) return;
+  currentModalIdx = (currentModalIdx + dir + filteredTopics.length) % filteredTopics.length;
+  showTopic(filteredTopics[currentModalIdx]);
+  document.getElementById('modal').scrollTop = 0;
+}
+
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('open');
+}
+
+function closeModalBg(e) {
+  if (e.target === document.getElementById('modal-bg')) closeModal();
+}
+
+document.addEventListener('keydown', (e) => {
+  if (document.getElementById('modal-bg').classList.contains('open')) {
+    if (e.key === 'Escape') closeModal();
+    if (e.key === 'ArrowLeft') navModal(-1);
+    if (e.key === 'ArrowRight') navModal(1);
+  }
+});
+
+renderPills();
+filterTopics();
+</script>
+</body>
+</html>
