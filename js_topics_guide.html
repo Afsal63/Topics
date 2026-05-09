@@ -1,4 +1,9 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript Topics Guide</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
 
@@ -10,18 +15,18 @@
     --color-background-root: #0a0a0c;
     --color-background-primary: #121216;
     --color-background-secondary: #1a1a21;
-    --color-background-info: rgba(99, 102, 241, 0.1);
+    --color-background-info: rgba(247, 223, 30, 0.1);
     
     --color-border-primary: rgba(255,255,255,0.1);
     --color-border-secondary: rgba(255,255,255,0.06);
     --color-border-tertiary: rgba(255,255,255,0.03);
-    --color-border-info: rgba(99, 102, 241, 0.2);
-    --color-border-hover: rgba(168, 85, 247, 0.4);
+    --color-border-info: rgba(247, 223, 30, 0.2);
+    --color-border-hover: rgba(247, 223, 30, 0.4);
     
     --color-text-primary: #f8fafc;
     --color-text-secondary: #94a3b8;
     --color-text-tertiary: #64748b;
-    --color-text-info: #818cf8;
+    --color-text-info: #f7df1e;
     
     --border-radius-sm: 8px;
     --border-radius-md: 16px;
@@ -36,8 +41,8 @@
     font-family: var(--font-sans); 
     background-color: var(--color-background-root);
     background-image: 
-      radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.04), transparent 25%),
-      radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.04), transparent 25%);
+      radial-gradient(circle at 15% 50%, rgba(247, 223, 30, 0.04), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(247, 223, 30, 0.04), transparent 25%);
     background-attachment: fixed;
     color: var(--color-text-primary);
     -webkit-font-smoothing: antialiased;
@@ -128,10 +133,10 @@
     transform: translateY(-1px);
   }
   .pill.active { 
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    color: #fff; 
+    background: linear-gradient(135deg, #d4b106 0%, #f7df1e 100%);
+    color: #1a1a1a; 
     border-color: transparent; 
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 4px 12px rgba(247, 223, 30, 0.25);
   }
   
   .count-label { 
@@ -164,7 +169,7 @@
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+    background: linear-gradient(90deg, transparent, rgba(247, 223, 30, 0.3), transparent);
     opacity: 0;
     transition: opacity 0.3s ease;
   }
@@ -319,9 +324,9 @@
     font-weight: 600;
     padding: 6px 14px; 
     border-radius: 100px; 
-    background: rgba(99, 102, 241, 0.15); 
+    background: rgba(247, 223, 30, 0.15); 
     color: var(--color-text-info); 
-    border: 1px solid rgba(99, 102, 241, 0.25);
+    border: 1px solid rgba(247, 223, 30, 0.25);
   }
   
   .modal-content-wrapper {
@@ -402,7 +407,7 @@
     display: inline-block;
     width: 12px;
     height: 4px;
-    background: #6366f1;
+    background: #f7df1e;
     border-radius: 2px;
     margin-right: 12px;
   }
@@ -442,11 +447,65 @@
   .modal-nav button:active {
     transform: translateY(0);
   }
+
+  @media (max-width: 768px) {
+    #app {
+      padding: 1.5rem 1rem;
+    }
+    .page-title {
+      font-size: 2rem;
+    }
+    #search {
+      font-size: 14px;
+      padding: 12px 20px;
+    }
+    .topic-grid {
+      grid-template-columns: 1fr;
+    }
+    .modal-bg {
+      padding: 0;
+      align-items: flex-end;
+    }
+    .modal {
+      max-height: 90vh;
+      border-radius: 20px 20px 0 0;
+      border-bottom: none;
+      border-left: none;
+      border-right: none;
+      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-header {
+      padding: 24px 24px 20px;
+    }
+    .modal-title {
+      font-size: 22px;
+      padding-right: 32px;
+    }
+    .modal-content-wrapper {
+      padding: 24px;
+    }
+    .modal-close {
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+    }
+    .modal-nav {
+      padding: 16px 24px;
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+    .pill {
+      font-size: 12px;
+      padding: 6px 14px;
+    }
+  }
 </style>
+</head>
+<body>
 
 <div id="app">
   <div class="header-area">
-    <h1 class="page-title">JS Topics Guide</h1>
+    <h1 class="page-title">JavaScript Topics Guide</h1>
     <h2 class="sr-only">JavaScript Topics Interactive Reference — 172 topics with explanations</h2>
   </div>
   <div class="search-bar">
@@ -3467,3 +3526,5 @@ function closeModalBg(e) {
 renderPills();
 filterTopics();
 </script>
+</body>
+</html>

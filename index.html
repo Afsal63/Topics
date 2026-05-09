@@ -12,6 +12,8 @@
             --card-hover: #334155;
             --accent-js: #f7df1e;
             --accent-react: #61dafb;
+            --accent-node: #3c873a;
+            --accent-mongo: #47A248;
         }
 
         body {
@@ -89,6 +91,14 @@
             background-color: var(--accent-react);
         }
 
+        .card.node-card::before {
+            background-color: var(--accent-node);
+        }
+
+        .card.mongo-card::before {
+            background-color: var(--accent-mongo);
+        }
+
         .card:hover {
             transform: translateY(-8px);
             background-color: var(--card-hover);
@@ -147,6 +157,18 @@
                 <div class="icon">⚛️</div>
                 <h2>React Guide</h2>
                 <p>Deep dive into React, Hooks, Redux architecture, and advanced concepts.</p>
+            </a>
+
+            <a href="nodejs_topics_guide.html" class="card node-card">
+                <div class="icon">🟢</div>
+                <h2>Node.js Guide</h2>
+                <p>Explore Node.js internals, Event Loop, APIs, and backend architecture.</p>
+            </a>
+
+            <a href="mongodb_topics_guide.html" class="card mongo-card">
+                <div class="icon">🍃</div>
+                <h2>MongoDB Guide</h2>
+                <p>Master NoSQL concepts, indexing, aggregation, and data modeling.</p>
             </a>
         </div>
     </div>
