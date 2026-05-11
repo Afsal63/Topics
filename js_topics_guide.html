@@ -937,6 +937,10 @@
 
   header { position: relative; z-index: 10; padding: 60px 40px 40px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, color-mix(in srgb, var(--green) 6%, transparent) 0%, transparent 100%); }
   .header-inner { max-width: 1200px; margin: 0 auto; }
+  .guide-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
+  .guide-nav-link { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--text3); font-size: 11px; letter-spacing: 0.08em; padding: 7px 12px; text-decoration: none; text-transform: uppercase; transition: all 0.15s; }
+  .guide-nav-link:hover { background: var(--green-glow); border-color: var(--border2); color: var(--text); }
+  .guide-nav-link.active { background: var(--green-glow); border-color: var(--green-muted); color: var(--green); }
   .header-tag { font-size: 11px; color: var(--green); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
   .header-tag::before { content: ''; width: 6px; height: 6px; background: var(--green); border-radius: 50%; box-shadow: 0 0 8px var(--green); }
   header h1 { font-family: var(--font-sans); font-size: clamp(36px, 6vw, 72px); font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
@@ -1016,6 +1020,13 @@
 
 <header>
   <div class="header-inner">
+    <nav class="guide-nav" aria-label="Guide navigation">
+      <a class="guide-nav-link" href="index.html">Hub</a>
+      <a class="guide-nav-link active" href="js_topics_guide.html">JavaScript</a>
+      <a class="guide-nav-link" href="react_topics_guide.html">React</a>
+      <a class="guide-nav-link" href="nodejs-interview-guide.html">Node.js</a>
+      <a class="guide-nav-link" href="mongodb.html">MongoDB</a>
+    </nav>
     <div class="header-tag">Interview Prep System</div>
     <h1>JavaScript<span> Topics</span><br>Guide</h1>
     <p class="header-sub">Grouped Q&amp;A reference for JavaScript concepts, with answers placed directly below each question.</p>

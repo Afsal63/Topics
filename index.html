@@ -77,7 +77,7 @@
             max-width: 1200px;
             width: 100%;
             margin: 0 auto;
-            padding: 60px 40px 48px;
+            padding: 60px 0px 48px;
             position: relative;
             z-index: 10;
         }
@@ -86,6 +86,38 @@
             padding-bottom: 36px;
             margin-bottom: 32px;
             border-bottom: 1px solid var(--border);
+        }
+
+        .guide-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 26px;
+        }
+
+        .guide-nav-link {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text3);
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            padding: 7px 12px;
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: all 0.15s;
+        }
+
+        .guide-nav-link:hover {
+            background: var(--green-glow);
+            border-color: var(--border2);
+            color: var(--text);
+        }
+
+        .guide-nav-link.active {
+            background: var(--green-glow);
+            border-color: var(--green);
+            color: var(--green);
         }
 
         .header-tag {
@@ -291,6 +323,13 @@
 
     <div class="container">
         <header class="header">
+            <nav class="guide-nav" aria-label="Guide navigation">
+                <a class="guide-nav-link active" href="index.html">Hub</a>
+                <a class="guide-nav-link" href="js_topics_guide.html">JavaScript</a>
+                <a class="guide-nav-link" href="react_topics_guide.html">React</a>
+                <a class="guide-nav-link" href="nodejs-interview-guide.html">Node.js</a>
+                <a class="guide-nav-link" href="mongodb.html">MongoDB</a>
+            </nav>
             <div class="header-tag">Interview Prep System</div>
             <h1>Learning<span> Hub</span></h1>
             <p class="subtitle">Select a topic guide and jump into the same Q&amp;A study layout used across the collection.</p>
