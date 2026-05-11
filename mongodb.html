@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MongoDB Interview Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e0d;
+    --bg2: #0f1410;
+    --bg3: #141a15;
+    --bg4: #1a2219;
+    --surface: #1f2a20;
+    --surface2: #253026;
+    --border: #2a3d2b;
+    --border2: #3a5c3c;
+    --green: #4ade80;
+    --green-dim: #22c55e;
+    --green-muted: #166534;
+    --green-glow: rgba(74,222,128,0.12);
+    --amber: #fbbf24;
+    --amber-dim: #d97706;
+    --red: #f87171;
+    --red-dim: #dc2626;
+    --blue: #60a5fa;
+    --cyan: #22d3ee;
+    --text: #e2f0e2;
+    --text2: #9ab89a;
+    --text3: #5a7a5c;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Grid bg */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(74,222,128,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(74,222,128,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 60px 40px 40px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(74,222,128,0.04) 0%, transparent 100%);
+  }
+
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .header-tag {
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-tag::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  h1 {
+    font-family: var(--sans);
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 800;
+    line-height: 1.0;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  h1 span {
+    color: var(--green);
+    text-shadow: 0 0 40px rgba(74,222,128,0.4);
+  }
+
+  .header-sub {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text3);
+    max-width: 600px;
+    line-height: 1.6;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 24px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+
+  .stat-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 12px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .stat-chip strong {
+    color: var(--green);
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  /* ─── LAYOUT ─── */
+  .layout {
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    padding: 32px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .sidebar-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 0 24px;
+    margin-bottom: 12px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    font-size: 12px;
+    color: var(--text3);
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    text-decoration: none;
+  }
+
+  .nav-item:hover {
+    color: var(--text);
+    background: var(--green-glow);
+  }
+
+  .nav-item.active {
+    color: var(--green);
+    border-left-color: var(--green);
+    background: var(--green-glow);
+  }
+
+  .nav-item .nav-count {
+    margin-left: auto;
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  .nav-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--border2);
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+
+  .nav-item.active .nav-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+  .progress-bar-wrap {
+    padding: 16px 24px;
+    margin-bottom: 8px;
+  }
+
+  .progress-label {
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .progress-label span { color: var(--green); }
+
+  .progress-track {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-dim), var(--green));
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* ─── MAIN ─── */
+  main {
+    flex: 1;
+    padding: 32px 40px;
+    min-width: 0;
+  }
+
+  /* ─── SEARCH ─── */
+  .search-wrap {
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    font-size: 13px;
+  }
+
+  .search-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px 12px 40px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-input::placeholder { color: var(--text3); }
+  .search-input:focus { border-color: var(--green-dim); box-shadow: 0 0 0 3px rgba(74,222,128,0.06); }
+
+  /* ─── SECTION ─── */
+  .section {
+    margin-bottom: 48px;
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .section-title {
+    font-family: var(--sans);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .section-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text3);
+    border: 1px solid var(--border);
+    padding: 3px 10px;
+    border-radius: 3px;
+  }
+
+  /* ─── QA CARD ─── */
+  .qa-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .qa-card:hover { border-color: var(--border2); }
+  .qa-card.open { border-color: var(--green-muted); }
+
+  .qa-question {
+    padding: 16px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    user-select: none;
+  }
+
+  .qa-num {
+    font-size: 11px;
+    color: var(--text3);
+    min-width: 20px;
+    padding-top: 1px;
+    flex-shrink: 0;
+  }
+
+  .qa-q-text {
+    flex: 1;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text2);
+    transition: color 0.2s;
+  }
+
+  .qa-card.open .qa-q-text { color: var(--text); }
+  .qa-card:hover .qa-q-text { color: var(--text); }
+
+  .qa-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .badge-basic { background: rgba(34,197,94,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.2); }
+  .badge-intermediate { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
+  .badge-advanced { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.2); }
+
+  .chevron {
+    color: var(--text3);
+    font-size: 10px;
+    transition: transform 0.25s;
+    flex-shrink: 0;
+  }
+
+  .qa-card.open .chevron { transform: rotate(180deg); color: var(--green); }
+
+  .viewed-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--border2);
+    flex-shrink: 0;
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+
+  .viewed-dot.done { background: var(--green); box-shadow: 0 0 5px var(--green); }
+
+  /* ─── ANSWER ─── */
+  .qa-answer {
+    display: none;
+    padding: 0 20px 20px 54px;
+    border-top: 1px solid var(--border);
+    animation: slideDown 0.2s ease;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .qa-card.open .qa-answer { display: block; }
+
+  .ans-body {
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text2);
+    padding-top: 16px;
+  }
+
+  .ans-body strong { color: var(--green); font-weight: 500; }
+  .ans-body em { color: var(--amber); font-style: normal; }
+
+  .ans-body ul {
+    list-style: none;
+    margin: 10px 0;
+  }
+
+  .ans-body ul li {
+    padding: 4px 0 4px 18px;
+    position: relative;
+    color: var(--text2);
+  }
+
+  .ans-body ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--green-dim);
+    font-size: 11px;
+  }
+
+  .ans-body p { margin: 8px 0; }
+
+  /* ─── CODE BLOCKS ─── */
+  pre {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green-muted);
+    border-radius: 6px;
+    padding: 16px;
+    margin: 12px 0;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text);
+    position: relative;
+  }
+
+  pre::before {
+    content: '$ ';
+    color: var(--green);
+    font-size: 11px;
+  }
+
+  .pre-label {
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--surface);
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--cyan);
+    border: 1px solid var(--border);
+  }
+
+  /* ─── TIPS SECTION ─── */
+  .tips-section {
+    background: linear-gradient(135deg, rgba(74,222,128,0.05) 0%, rgba(74,222,128,0.02) 100%);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tips-section::before {
+    content: 'TIPS';
+    position: absolute;
+    right: -10px;
+    top: -20px;
+    font-family: var(--sans);
+    font-size: 80px;
+    font-weight: 800;
+    color: rgba(74,222,128,0.04);
+    letter-spacing: -0.04em;
+    pointer-events: none;
+  }
+
+  .tips-title {
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--green);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .tip-item {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+
+  .tip-item:last-child { border-bottom: none; }
+
+  .tip-num {
+    width: 24px;
+    height: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--green);
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+
+  .tip-text {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text2);
+  }
+
+  .tip-text strong { color: var(--text); }
+
+  /* ─── FILTER TABS ─── */
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 5px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text3);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .filter-btn:hover { border-color: var(--border2); color: var(--text2); }
+  .filter-btn.active { background: var(--green-muted); border-color: var(--green-dim); color: var(--green); }
+
+  /* ─── NO RESULTS ─── */
+  .no-results {
+    text-align: center;
+    padding: 48px;
+    color: var(--text3);
+    font-size: 13px;
+  }
+
+  .no-results span { color: var(--green); }
+
+  /* ─── SCROLL TO TOP ─── */
+  .scroll-top {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    width: 40px;
+    height: 40px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--green);
+    z-index: 100;
+    transition: all 0.2s;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .scroll-top.visible { opacity: 1; pointer-events: all; }
+  .scroll-top:hover { background: var(--surface2); box-shadow: 0 0 12px rgba(74,222,128,0.15); }
+
+  /* ─── MOBILE ─── */
+  @media (max-width: 768px) {
+    header { padding: 32px 20px 24px; }
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border); padding: 16px 0; display: flex; flex-wrap: wrap; gap: 4px; padding: 12px; }
+    .sidebar-label, .progress-bar-wrap { display: none; }
+    .nav-item { padding: 6px 12px; border-left: none; border-bottom: 2px solid transparent; border-radius: 4px; font-size: 11px; }
+    .nav-item.active { border-bottom-color: var(--green); border-left: none; }
+    main { padding: 20px; }
+    .qa-answer { padding-left: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-tag">Interview Prep System</div>
+    <h1>Mongo<span>DB</span><br>Interview Guide</h1>
+    <p class="header-sub">Complete Q&amp;A reference covering all core topics. Track your progress, filter by difficulty, search instantly.</p>
+    <div class="stats-row">
+      <div class="stat-chip"><strong id="total-q">0</strong> questions</div>
+      <div class="stat-chip"><strong id="viewed-q">0</strong> viewed</div>
+      <div class="stat-chip"><strong>10</strong> topics</div>
+      <div class="stat-chip"><strong id="pct">0%</strong> progress</div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="progress-bar-wrap">
+      <div class="progress-label">Progress <span id="prog-label">0%</span></div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+    </div>
+    <div class="sidebar-label">Topics</div>
+    <a class="nav-item active" href="#basics"><span class="nav-dot"></span>Basics<span class="nav-count">5</span></a>
+    <a class="nav-item" href="#crud"><span class="nav-dot"></span>CRUD<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#indexing"><span class="nav-dot"></span>Indexing<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#aggregation"><span class="nav-dot"></span>Aggregation<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#schema"><span class="nav-dot"></span>Schema Design<span class="nav-count">3</span></a>
+    <a class="nav-item" href="#transactions"><span class="nav-dot"></span>Transactions<span class="nav-count">2</span></a>
+    <a class="nav-item" href="#replication"><span class="nav-dot"></span>Replication<span class="nav-count">2</span></a>
+    <a class="nav-item" href="#sharding"><span class="nav-dot"></span>Sharding<span class="nav-count">2</span></a>
+    <a class="nav-item" href="#performance"><span class="nav-dot"></span>Performance<span class="nav-count">2</span></a>
+    <a class="nav-item" href="#advanced"><span class="nav-dot"></span>Advanced<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#tips"><span class="nav-dot"></span>Interview Tips</a>
+  </nav>
+
+  <main id="main-content">
+    <!-- Search -->
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" class="search-input" id="search" placeholder="Search questions, topics, operators..." oninput="doSearch()">
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+      <button class="filter-btn" onclick="setFilter('basic', this)">Basic</button>
+      <button class="filter-btn" onclick="setFilter('intermediate', this)">Intermediate</button>
+      <button class="filter-btn" onclick="setFilter('advanced', this)">Advanced</button>
+    </div>
+
+    <div id="qa-container"></div>
+    <div id="no-results" class="no-results" style="display:none">No questions matching <span id="search-term"></span></div>
+
+    <!-- Tips -->
+    <div class="tips-section" id="tips">
+      <div class="tips-title">⚡ Interview Tips</div>
+      <div class="tip-item">
+        <div class="tip-num">01</div>
+        <div class="tip-text"><strong>Write aggregation pipelines on the spot.</strong> Practice building $match + $group + $lookup combos from scratch. Interviewers love asking you to solve analytics problems with the aggregation framework — having the stage order memorized (match early, unwind before group, lookup after match) wins points.</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-num">02</div>
+        <div class="tip-text"><strong>Always discuss trade-offs for schema design questions.</strong> Never say "embed" or "reference" without explaining why. Mention document size limits, query patterns, write frequency, and the ESR rule. Show that you think about reads vs writes holistically.</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-num">03</div>
+        <div class="tip-text"><strong>Ground answers in real project experience.</strong> Mention your ERP system (erp-next.vercel.app), Dialar (WebRTC), or Freston Analytics work. "At Freston Analytics, we used compound indexes with the ESR rule to optimize dashboard queries" is far stronger than a textbook answer.</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-num">04</div>
+        <div class="tip-text"><strong>Know when NOT to use transactions.</strong> MongoDB single-document operations are always atomic — a common gotcha. Saying "I avoid multi-document transactions unless necessary due to performance overhead" signals maturity.</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-num">05</div>
+        <div class="tip-text"><strong>Explain explain().</strong> Interviewers love asking how you debug slow queries. Walk them through COLLSCAN vs IXSCAN, totalDocsExamined vs nReturned, and how you'd add or restructure an index to fix it.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<button class="scroll-top" id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+const QA = [
+  // BASICS
+  { id: 'basics', section: 'Basics', icon: '🍃', level: 'basic',
+    q: 'What is MongoDB? How is it different from a relational database?',
+    a: `<p>MongoDB is a <strong>NoSQL document database</strong> that stores data as flexible JSON-like BSON documents rather than rows in tables.</p>
+<ul>
+<li><strong>Schema:</strong> MongoDB is schema-less (flexible per document); RDBMS enforces strict schema at table level</li>
+<li><strong>Data model:</strong> Nested embedded documents vs flat rows with foreign key joins</li>
+<li><strong>Scaling:</strong> Horizontal scaling via sharding vs vertical scaling in SQL</li>
+<li><strong>Relationships:</strong> Embedding or referencing vs foreign keys + JOINs</li>
+<li><strong>Transactions:</strong> Multi-document ACID transactions supported since v4.0</li>
+</ul>
+<pre>// MongoDB document (nested, flexible)
+{
+  _id: ObjectId("507f1f77bcf86cd799439011"),
+  name: "Afsal",
+  skills: ["Node.js", "React", "MongoDB"],
+  address: { city: "Bengaluru", zip: "560001" },
+  createdAt: ISODate("2025-04-27")
+}</pre>` },
+
+  { id: 'basics', section: 'Basics', icon: '🍃', level: 'basic',
+    q: 'What is BSON? Why does MongoDB use it instead of JSON?',
+    a: `<p><strong>BSON (Binary JSON)</strong> is MongoDB's binary-encoded serialization format. It extends JSON with additional data types.</p>
+<ul>
+<li><strong>Speed:</strong> Encoded length prefixes allow fields to be skipped without parsing the full document</li>
+<li><strong>Additional types:</strong> <code>Date</code>, <code>Binary</code>, <code>ObjectId</code>, <code>Decimal128</code>, <code>int32/int64</code>, <code>Regex</code> — none of these exist in pure JSON</li>
+<li><strong>Efficient wire protocol:</strong> Compact binary representation for network transmission</li>
+</ul>
+<pre>// BSON-specific types (not valid JSON)
+{
+  _id: ObjectId("507f1f77bcf86cd799439011"),
+  createdAt: ISODate("2025-04-27T00:00:00Z"),
+  price: NumberDecimal("19.99"),
+  binary: BinData(0, "abc123==")
+}</pre>` },
+
+  { id: 'basics', section: 'Basics', icon: '🍃', level: 'basic',
+    q: 'What are Collections, Documents, and Fields?',
+    a: `<ul>
+<li><strong>Database</strong> — top-level namespace, analogous to SQL database</li>
+<li><strong>Collection</strong> — analogous to a SQL table; a group of documents. Schema-flexible — each document can have different fields</li>
+<li><strong>Document</strong> — analogous to a SQL row; a BSON key-value object with a maximum size of 16MB</li>
+<li><strong>Field</strong> — analogous to a SQL column; a key-value pair in a document</li>
+</ul>
+<p>Collections are created implicitly when the first document is inserted. The primary key is <code>_id</code> — auto-generated as <code>ObjectId</code> if not provided.</p>` },
+
+  { id: 'basics', section: 'Basics', icon: '🍃', level: 'basic',
+    q: 'What is ObjectId? How is it generated and what information does it encode?',
+    a: `<p><code>ObjectId</code> is MongoDB's default <code>_id</code> type — a <strong>12-byte unique identifier</strong>.</p>
+<ul>
+<li><strong>4 bytes</strong> — Unix timestamp (seconds since epoch)</li>
+<li><strong>5 bytes</strong> — random value unique to machine + process</li>
+<li><strong>3 bytes</strong> — auto-incrementing counter (starts at random)</li>
+</ul>
+<p>This makes ObjectIds <strong>roughly sortable by insertion time</strong> and globally unique without a central coordinator.</p>
+<pre>const id = new ObjectId();
+console.log(id.toString());     // "507f1f77bcf86cd799439011"
+console.log(id.getTimestamp()); // Date object of creation time
+console.log(id.toHexString());  // 24-char hex string</pre>` },
+
+  { id: 'basics', section: 'Basics', icon: '🍃', level: 'basic',
+    q: 'What is the difference between MongoDB native driver and Mongoose?',
+    a: `<ul>
+<li><strong>MongoDB Node.js driver</strong> — low-level driver, sends commands directly. No schema enforcement, maximum flexibility and performance.</li>
+<li><strong>Mongoose</strong> — ODM (Object Data Modeler) built on the driver. Adds:</li>
+</ul>
+<ul>
+<li><em>Schema definitions</em> with built-in and custom validation</li>
+<li><em>Middleware (pre/post hooks)</em> — intercept save, update, delete</li>
+<li><em>Virtual fields</em> — computed properties not stored in DB</li>
+<li><em>populate()</em> — resolve document references</li>
+<li><em>Query builder API</em> — chainable, readable syntax</li>
+</ul>
+<p><strong>When to use what:</strong> Mongoose for structured apps needing validation and DX; native driver when you need fine-grained control or maximum throughput (e.g. batch processing pipelines).</p>` },
+
+  // CRUD
+  { id: 'crud', section: 'CRUD', icon: '✏️', level: 'basic',
+    q: 'Explain all CRUD operations in MongoDB with examples.',
+    a: `<pre>// ─── CREATE ───
+db.users.insertOne({ name: "Afsal", age: 26, active: true });
+db.users.insertMany([
+  { name: "Alice", role: "admin" },
+  { name: "Bob", role: "user" }
+]);
+
+// ─── READ ───
+db.users.find({ active: true });               // all matching
+db.users.findOne({ email: "a@b.com" });        // first match
+db.users.find({ age: { $gt: 18 } })
+        .sort({ name: 1 })
+        .limit(10)
+        .project({ name: 1, email: 1, _id: 0 });
+
+// ─── UPDATE ───
+db.users.updateOne(
+  { name: "Afsal" },
+  { $set: { age: 27 }, $inc: { loginCount: 1 } }
+);
+db.users.updateMany({ active: false }, { $set: { status: "inactive" } });
+
+// ─── DELETE ───
+db.users.deleteOne({ name: "Afsal" });
+db.users.deleteMany({ active: false, createdAt: { $lt: cutoff } });</pre>` },
+
+  { id: 'crud', section: 'CRUD', icon: '✏️', level: 'basic',
+    q: 'What are the key update operators? ($set, $unset, $inc, $push, $pull, $addToSet)',
+    a: `<ul>
+<li><code>$set</code> — sets field value; creates field if it doesn't exist</li>
+<li><code>$unset</code> — removes a field entirely from the document</li>
+<li><code>$inc</code> — increments or decrements a numeric field by given value</li>
+<li><code>$push</code> — appends a value to an array field</li>
+<li><code>$pull</code> — removes all elements from an array matching a condition</li>
+<li><code>$addToSet</code> — like $push but prevents duplicate values</li>
+<li><code>$pop</code> — removes first (<code>-1</code>) or last (<code>1</code>) element from array</li>
+<li><code>$rename</code> — renames a field</li>
+</ul>
+<pre>db.users.updateOne({ _id: id }, {
+  $set: { "profile.bio": "Full Stack Dev" },
+  $inc: { loginCount: 1 },
+  $push: { tags: "mongodb" },
+  $pull: { tags: "deprecated" },
+  $unset: { tempToken: "" }
+});</pre>` },
+
+  { id: 'crud', section: 'CRUD', icon: '✏️', level: 'intermediate',
+    q: 'What is upsert? When would you use it?',
+    a: `<p><strong>Upsert = Update + Insert</strong>. With <code>upsert: true</code>, MongoDB updates the matching document — or inserts a new one if no match is found.</p>
+<pre>// Pattern: increment page view counter; create if first visit
+db.pageViews.updateOne(
+  { url: "/dashboard" },
+  {
+    $inc: { count: 1 },
+    $setOnInsert: { firstSeen: new Date() }   // only on insert
+  },
+  { upsert: true }
+);</pre>
+<p><strong>Use cases:</strong></p>
+<ul>
+<li>Counters and accumulators (analytics, rate limiting)</li>
+<li>Config documents (create default if not present)</li>
+<li>Idempotent event processing</li>
+<li>Sync operations where you don't know if record exists</li>
+</ul>
+<p><strong>$setOnInsert</strong> is your friend with upserts — sets fields only when inserting, not when updating.</p>` },
+
+  { id: 'crud', section: 'CRUD', icon: '✏️', level: 'intermediate',
+    q: 'What is the difference between updateOne() and findOneAndUpdate()?',
+    a: `<ul>
+<li><strong>updateOne()</strong> — modifies document, returns a <em>result object</em> with <code>matchedCount</code> / <code>modifiedCount</code>. Does <em>not</em> return the document itself.</li>
+<li><strong>findOneAndUpdate()</strong> — modifies document and <em>returns the document</em> (before or after update). Atomic find-and-modify operation.</li>
+</ul>
+<pre>// updateOne — just want to know if it worked
+const result = await users.updateOne(
+  { _id: id }, { $set: { status: "active" } }
+);
+console.log(result.modifiedCount); // 1
+
+// findOneAndUpdate — need the updated document immediately
+const doc = await orders.findOneAndUpdate(
+  { _id: orderId, status: "pending" },
+  { $set: { status: "shipped", shippedAt: new Date() } },
+  { returnDocument: "after" }   // "before" returns original
+);
+console.log(doc.status); // "shipped"</pre>
+<p><strong>Use findOneAndUpdate</strong> for: queue-style processing, optimistic locking, any operation where you need the result document immediately.</p>` },
+
+  // INDEXING
+  { id: 'indexing', section: 'Indexing', icon: '⚡', level: 'basic',
+    q: 'What are indexes in MongoDB and why are they important?',
+    a: `<p>Indexes are <strong>B-tree data structures</strong> that store a small portion of collection data in an easy-to-traverse form, ordered by indexed field values.</p>
+<p>Without an index, MongoDB performs a <strong>COLLSCAN</strong> (collection scan) — reads every document. With an index: <strong>IXSCAN</strong> — jumps directly to matching entries.</p>
+<pre>// Create index
+db.users.createIndex({ email: 1 });   // 1 = asc, -1 = desc
+
+// Verify index is used
+db.users.find({ email: "a@b.com" }).explain("executionStats");
+// Look for: winningPlan.stage = "IXSCAN"  ✓</pre>
+<p><strong>Trade-offs:</strong> Indexes speed up reads but slow down writes (index must be updated on every insert/update/delete) and consume additional disk + RAM.</p>` },
+
+  { id: 'indexing', section: 'Indexing', icon: '⚡', level: 'intermediate',
+    q: 'What are all the types of indexes in MongoDB?',
+    a: `<ul>
+<li><strong>Single field</strong> — <code>{ name: 1 }</code> — most common, one field</li>
+<li><strong>Compound</strong> — <code>{ name: 1, age: -1 }</code> — multiple fields, follow ESR rule</li>
+<li><strong>Multikey</strong> — auto-created when indexing an array field; one entry per array element</li>
+<li><strong>Text</strong> — <code>{ description: "text" }</code> — full-text search with <code>$text</code> operator</li>
+<li><strong>Geospatial:</strong> 2d (flat plane) and 2dsphere (Earth surface) for <code>$near</code>, <code>$geoWithin</code></li>
+<li><strong>Hashed</strong> — <code>{ _id: "hashed" }</code> — even distribution for sharding; no range queries</li>
+<li><strong>Sparse</strong> — only indexes documents where the field exists; saves space for optional fields</li>
+<li><strong>Partial</strong> — indexes only documents matching a filter expression</li>
+<li><strong>TTL</strong> — auto-expires documents after a set duration (e.g. sessions, logs)</li>
+<li><strong>Wildcard</strong> — <code>{ "$**": 1 }</code> — indexes all fields dynamically; useful for unknown schemas</li>
+<li><strong>Unique</strong> — enforces uniqueness constraint on indexed field(s)</li>
+</ul>` },
+
+  { id: 'indexing', section: 'Indexing', icon: '⚡', level: 'intermediate',
+    q: 'What is the ESR rule for compound indexes?',
+    a: `<p><strong>ESR = Equality → Sort → Range</strong></p>
+<p>When ordering fields in a compound index, place them in this priority to maximize index utilization:</p>
+<ul>
+<li><strong>E</strong>quality fields first — exact match conditions (<code>status: "active"</code>)</li>
+<li><strong>S</strong>ort fields next — matches your query's sort order, avoids in-memory sort</li>
+<li><strong>R</strong>ange fields last — inequality conditions (<code>$gt</code>, <code>$lt</code>, <code>$in</code>, <code>$regex</code>)</li>
+</ul>
+<pre>// Query: active users, sorted by name, age between 20-30
+db.users.find(
+  { status: "active", age: { $gte: 20, $lte: 30 } }
+).sort({ name: 1 });
+
+// Optimal ESR index:
+db.users.createIndex({ status: 1, name: 1, age: 1 });
+//                     ^Equality  ^Sort    ^Range</pre>
+<p>Deviating from ESR forces MongoDB to either use less of the index or do in-memory sorts (SORT_KEY stage appears in explain output).</p>` },
+
+  { id: 'indexing', section: 'Indexing', icon: '⚡', level: 'advanced',
+    q: 'What is a covered query and how do you create one?',
+    a: `<p>A <strong>covered query</strong> is satisfied entirely from the index — MongoDB <em>never touches the actual documents</em>. Maximum performance.</p>
+<p><strong>Requirements:</strong></p>
+<ul>
+<li>All fields in the <code>$match</code> / filter are in the index</li>
+<li>All projected return fields are in the index</li>
+<li><code>_id</code> is excluded from projection (unless it's in the index)</li>
+</ul>
+<pre>// Index on email + name
+db.users.createIndex({ email: 1, name: 1 });
+
+// ✅ COVERED — only touches index, totalDocsExamined: 0
+db.users.find(
+  { email: "a@b.com" },
+  { _id: 0, name: 1 }
+);
+
+// ❌ NOT COVERED — _id is returned but not in index
+db.users.find({ email: "a@b.com" }, { name: 1 });
+
+// Verify: executionStats.totalDocsExamined should be 0</pre>` },
+
+  // AGGREGATION
+  { id: 'aggregation', section: 'Aggregation', icon: '🔄', level: 'intermediate',
+    q: 'What is the Aggregation Pipeline and what are its key stages?',
+    a: `<p>The aggregation pipeline processes documents through a sequence of <strong>stages</strong>, each transforming the output. Think of it as a UNIX pipe for documents.</p>
+<pre>db.orders.aggregate([
+  { $match: { status: "completed" } },          // 1. filter early
+  { $group: {                                    // 2. group + aggregate
+      _id: "$userId",
+      totalSpent: { $sum: "$amount" },
+      orderCount: { $sum: 1 }
+  }},
+  { $sort: { totalSpent: -1 } },                // 3. sort results
+  { $limit: 10 },                               // 4. top 10
+  { $project: { _id: 0, userId: "$_id",         // 5. reshape
+                totalSpent: 1, orderCount: 1 } }
+]);</pre>
+<p><strong>Key stages:</strong> <code>$match</code>, <code>$group</code>, <code>$project</code>, <code>$sort</code>, <code>$limit</code>, <code>$skip</code>, <code>$unwind</code>, <code>$lookup</code>, <code>$addFields</code>, <code>$count</code>, <code>$facet</code>, <code>$bucket</code>, <code>$replaceRoot</code>, <code>$merge</code></p>
+<p><strong>Performance tip:</strong> Always place <code>$match</code> as early as possible to reduce documents entering subsequent stages.</p>` },
+
+  { id: 'aggregation', section: 'Aggregation', icon: '🔄', level: 'intermediate',
+    q: 'How does $lookup work? Explain joining collections in MongoDB.',
+    a: `<p><code>$lookup</code> performs a <strong>left outer join</strong> to another collection in the same database.</p>
+<pre>// Basic $lookup
+db.orders.aggregate([
+  {
+    $lookup: {
+      from: "users",            // collection to join
+      localField: "userId",     // field in current (orders)
+      foreignField: "_id",      // field in joined (users)
+      as: "user"                // output array field name
+    }
+  },
+  { $unwind: "$user" },         // flatten array → single object
+  { $project: { orderId: 1, amount: 1, "user.name": 1 } }
+]);
+
+// Pipeline-style $lookup (more expressive, supports conditions)
+{
+  $lookup: {
+    from: "products",
+    let: { oid: "$_id" },
+    pipeline: [
+      { $match: { $expr: { $eq: ["$orderId", "$$oid"] } } },
+      { $match: { active: true } }
+    ],
+    as: "products"
+  }
+}</pre>
+<p><strong>Performance note:</strong> $lookup is expensive at scale. For hot read paths, prefer embedding or the Extended Reference pattern.</p>` },
+
+  { id: 'aggregation', section: 'Aggregation', icon: '🔄', level: 'intermediate',
+    q: 'What does $unwind do and when do you need it?',
+    a: `<p><code>$unwind</code> <strong>deconstructs an array field</strong> — outputs one document per array element, duplicating all other fields.</p>
+<pre>// Input document:
+{ _id: 1, author: "Afsal", tags: ["node", "react", "mongo"] }
+
+db.posts.aggregate([{ $unwind: "$tags" }]);
+
+// Output (3 documents):
+{ _id: 1, author: "Afsal", tags: "node" }
+{ _id: 1, author: "Afsal", tags: "react" }
+{ _id: 1, author: "Afsal", tags: "mongo" }
+
+// With options — preserve empty/null arrays
+{ $unwind: {
+    path: "$tags",
+    includeArrayIndex: "tagIndex",   // adds index field
+    preserveNullAndEmptyArrays: true // keeps docs with no tags
+}}</pre>
+<p><strong>When needed:</strong> Before <code>$group</code> on array values, before <code>$lookup</code> pipeline on arrays, for per-element analytics.</p>` },
+
+  { id: 'aggregation', section: 'Aggregation', icon: '🔄', level: 'advanced',
+    q: 'What is $facet and how do you use it for dashboard queries?',
+    a: `<p><code>$facet</code> runs <strong>multiple sub-pipelines in parallel</strong> on the same input documents — perfect for dashboard/search results that need counts + stats + categories in one query.</p>
+<pre>db.products.aggregate([
+  { $match: { active: true, price: { $gt: 0 } } },  // shared filter
+  {
+    $facet: {
+      // Sub-pipeline 1: group by category
+      byCategory: [
+        { $group: { _id: "$category", count: { $sum: 1 } } },
+        { $sort: { count: -1 } }
+      ],
+      // Sub-pipeline 2: price statistics
+      priceStats: [
+        { $group: {
+            _id: null,
+            min: { $min: "$price" },
+            max: { $max: "$price" },
+            avg: { $avg: "$price" }
+        }}
+      ],
+      // Sub-pipeline 3: total count
+      totalCount: [{ $count: "count" }],
+      // Sub-pipeline 4: top 5 items
+      topItems: [
+        { $sort: { rating: -1 } },
+        { $limit: 5 },
+        { $project: { name: 1, price: 1, rating: 1 } }
+      ]
+    }
+  }
+]);
+// Returns single document with all 4 result sets</pre>` },
+
+  // SCHEMA DESIGN
+  { id: 'schema', section: 'Schema Design', icon: '🏗️', level: 'intermediate',
+    q: 'When should you embed documents vs use references?',
+    a: `<p><strong>Rule of thumb:</strong> Model your data the way your application queries it.</p>
+<ul>
+<li><strong>Embed when:</strong> data is always read together, child has no independent existence, one-to-few relationship, child updated rarely</li>
+<li><strong>Reference when:</strong> data is large and accessed independently, one-to-many/many-to-many, child documents update frequently, need to avoid 16MB limit</li>
+</ul>
+<pre>// ✅ EMBED — address always read with user
+{ _id: uid, name: "Afsal",
+  addresses: [
+    { type: "home", city: "Bengaluru", zip: "560001" }
+  ]
+}
+
+// ✅ REFERENCE — posts queried independently, could be many
+{ _id: postId, title: "MongoDB Tips",
+  authorId: ObjectId("..."),   // reference to users collection
+  content: "..." }
+
+// ❌ DON'T embed — could grow unbounded
+{ _id: userId, comments: [ /* thousands of comments */ ] }
+// → Use separate comments collection with userId ref</pre>` },
+
+  { id: 'schema', section: 'Schema Design', icon: '🏗️', level: 'intermediate',
+    q: 'What is the 16MB document limit and how do you handle it?',
+    a: `<p>MongoDB enforces a <strong>16MB BSON document size limit</strong>. Approaching this limit signals a design problem.</p>
+<p><strong>Solutions:</strong></p>
+<ul>
+<li><strong>GridFS</strong> — for binary files > 16MB. Splits into 255KB chunks stored in <code>fs.chunks</code>; metadata in <code>fs.files</code></li>
+<li><strong>Referencing</strong> — move large or unbounded subdocuments to a separate collection</li>
+<li><strong>Bucket pattern</strong> — group time-series events into time-window buckets (e.g. one document per day per device)</li>
+<li><strong>Outlier pattern</strong> — add <code>hasOverflow: true</code> flag + linked overflow document for exceptional cases</li>
+</ul>
+<pre>// Bucket pattern — IoT sensor data
+{
+  deviceId: "sensor_01",
+  date: ISODate("2025-04-27"),
+  readings: [
+    { ts: ISODate("2025-04-27T00:00:00Z"), temp: 22.1 },
+    { ts: ISODate("2025-04-27T00:01:00Z"), temp: 22.3 },
+    // ... up to ~1440 readings per day
+  ],
+  count: 1440
+}</pre>` },
+
+  { id: 'schema', section: 'Schema Design', icon: '🏗️', level: 'advanced',
+    q: 'What MongoDB schema design patterns should you know for interviews?',
+    a: `<ul>
+<li><strong>Subset pattern</strong> — embed only a subset of most-accessed data (e.g. latest 10 reviews on product doc); keep full data in separate collection</li>
+<li><strong>Computed pattern</strong> — pre-compute expensive aggregations and store results on the document (e.g. <code>totalOrders</code> on user); update on write</li>
+<li><strong>Bucket pattern</strong> — group time-series events into time-window documents to reduce document count and enable efficient range queries</li>
+<li><strong>Extended reference pattern</strong> — denormalize frequently read fields from referenced docs (e.g. store <code>authorName</code> on post to avoid $lookup on reads)</li>
+<li><strong>Outlier pattern</strong> — handle documents that exceed typical size with <code>hasOverflow</code> flag + linked overflow doc</li>
+<li><strong>Polymorphic pattern</strong> — store different document shapes in one collection, discriminated by a <code>type</code> field; index on type for efficient queries</li>
+<li><strong>Attribute pattern</strong> — for documents with many optional/sparse fields, consolidate into an array of <code>{ k, v }</code> pairs for efficient indexing</li>
+</ul>` },
+
+  // TRANSACTIONS
+  { id: 'transactions', section: 'Transactions', icon: '🔒', level: 'intermediate',
+    q: 'Does MongoDB support ACID transactions? How do you use them?',
+    a: `<p>Yes — <strong>MongoDB 4.0+</strong> supports multi-document ACID transactions for replica sets; <strong>4.2+</strong> for sharded clusters.</p>
+<pre>const session = client.startSession();
+session.startTransaction({
+  readConcern: { level: "snapshot" },
+  writeConcern: { w: "majority" }
+});
+
+try {
+  // All operations use the same session
+  await orders.insertOne(
+    { item: "widget", qty: 1, userId },
+    { session }
+  );
+  await inventory.updateOne(
+    { item: "widget" },
+    { $inc: { qty: -1 } },
+    { session }
+  );
+  await session.commitTransaction();
+} catch (err) {
+  await session.abortTransaction();
+  throw err;
+} finally {
+  await session.endSession();
+}</pre>
+<p><strong>Important:</strong> Single-document operations are always atomic in MongoDB. Use transactions only when you genuinely need cross-document/collection atomicity — they add latency and lock overhead.</p>` },
+
+  { id: 'transactions', section: 'Transactions', icon: '🔒', level: 'advanced',
+    q: 'What is Write Concern and Read Concern?',
+    a: `<p><strong>Write Concern</strong> — specifies acknowledgment level required before a write is considered successful:</p>
+<ul>
+<li><code>{ w: 0 }</code> — fire and forget; no acknowledgment</li>
+<li><code>{ w: 1 }</code> — primary acknowledges (default)</li>
+<li><code>{ w: "majority" }</code> — majority of replica set members acknowledge; durable</li>
+<li><code>{ j: true }</code> — wait for journal write (survives process crash)</li>
+</ul>
+<p><strong>Read Concern</strong> — controls consistency of data returned:</p>
+<ul>
+<li><code>local</code> — reads most recent data (may be rolled back if primary fails)</li>
+<li><code>available</code> — like local but for sharded clusters, may read stale</li>
+<li><code>majority</code> — reads only data acknowledged by majority (guaranteed durable)</li>
+<li><code>linearizable</code> — strongest guarantee; reflects all prior majority writes</li>
+<li><code>snapshot</code> — consistent point-in-time view; used in multi-document transactions</li>
+</ul>` },
+
+  // REPLICATION
+  { id: 'replication', section: 'Replication', icon: '🔁', level: 'intermediate',
+    q: 'What is a Replica Set? How does failover work?',
+    a: `<p>A <strong>replica set</strong> is a group of MongoDB instances that maintain the same dataset, providing <strong>high availability and data redundancy</strong>.</p>
+<ul>
+<li><strong>Primary</strong> — receives all write operations; exactly one per replica set at any time</li>
+<li><strong>Secondary</strong> — replicates data from primary via the oplog; can serve read operations</li>
+<li><strong>Arbiter</strong> — participates in elections but holds no data; used to achieve odd quorum count</li>
+</ul>
+<p><strong>Failover process:</strong> If primary becomes unavailable, secondaries detect the heartbeat timeout (~10 seconds) and hold an election. The secondary with the most up-to-date oplog and highest priority wins.</p>
+<pre>// Check replica set status
+rs.status()
+rs.isMaster()
+
+// Configure read from secondaries
+db.getMongo().setReadPref("secondaryPreferred")</pre>
+<p><strong>Minimum recommended:</strong> 3 nodes (1 primary + 2 secondaries) to ensure quorum for elections.</p>` },
+
+  { id: 'replication', section: 'Replication', icon: '🔁', level: 'advanced',
+    q: 'What is the oplog and why is it important?',
+    a: `<p>The <strong>oplog (operations log)</strong> is a special <em>capped collection</em> (<code>local.oplog.rs</code>) that records every data modification operation.</p>
+<ul>
+<li><strong>Capped collection</strong> — fixed size, automatically wraps around; older entries are overwritten</li>
+<li><strong>Idempotent entries</strong> — each oplog entry can be applied multiple times safely (e.g. <code>$inc: 1</code> is stored as <code>$set</code> to final value)</li>
+<li><strong>Replication mechanism</strong> — secondaries tail the primary's oplog to stay in sync</li>
+<li><strong>Change Streams</strong> — built on top of oplog for real-time notifications</li>
+<li><strong>Point-in-time recovery</strong> — oplog entries enable restoring data to any point in time</li>
+</ul>
+<pre>// Check oplog size and time window
+rs.printReplicationInfo()
+// Output: configured oplog size: 10GB
+//         log length start to end: 48hrs 23mins
+
+// Oplog lag on secondaries
+rs.printSecondaryReplicationInfo()</pre>
+<p>Oplog size determines how far behind a secondary can fall before needing a full initial sync.</p>` },
+
+  // SHARDING
+  { id: 'sharding', section: 'Sharding', icon: '🌐', level: 'intermediate',
+    q: 'What is Sharding in MongoDB? Describe the architecture.',
+    a: `<p>Sharding is MongoDB's <strong>horizontal scaling</strong> mechanism — distributing data across multiple machines (shards).</p>
+<p><strong>Architecture components:</strong></p>
+<ul>
+<li><strong>Shard</strong> — each shard is a replica set containing a subset of the data</li>
+<li><strong>mongos (query router)</strong> — routes client requests to the correct shard(s); clients connect to mongos, not shards directly</li>
+<li><strong>Config servers</strong> — replica set storing cluster metadata: which chunk lives on which shard</li>
+</ul>
+<p><strong>Data distribution:</strong> Data is split into <strong>chunks</strong> (default 128MB) by shard key ranges. A background balancer process migrates chunks to keep shards evenly loaded.</p>
+<pre>// Enable sharding on a database
+sh.enableSharding("mydb");
+
+// Shard a collection
+sh.shardCollection("mydb.orders", { userId: "hashed" });
+
+// Check cluster status
+sh.status()</pre>` },
+
+  { id: 'sharding', section: 'Sharding', icon: '🌐', level: 'advanced',
+    q: 'How do you choose a good shard key? What are the pitfalls?',
+    a: `<p>A good shard key must balance three properties:</p>
+<ul>
+<li><strong>High cardinality</strong> — many distinct values enable even distribution across shards</li>
+<li><strong>Low frequency</strong> — no single value dominates (avoids jumbo chunks that can't split)</li>
+<li><strong>Non-monotonic</strong> — sequential values (timestamps, auto-increment IDs) cause a <em>hotspot</em> — all writes go to one shard</li>
+</ul>
+<p><strong>Bad choices:</strong></p>
+<ul>
+<li><code>createdAt</code> — monotonically increasing; all new writes hit one shard</li>
+<li><code>status</code> / boolean — low cardinality; can't split beyond 2 shards effectively</li>
+</ul>
+<p><strong>Good choices:</strong></p>
+<ul>
+<li><code>{ _id: "hashed" }</code> — even distribution; good for write-heavy workloads</li>
+<li><code>{ userId: 1 }</code> — natural per-user data locality; good for multi-tenant apps</li>
+<li><code>{ region: 1, userId: 1 }</code> — compound; geo-locality + cardinality</li>
+</ul>
+<p><strong>Warning:</strong> Shard keys are <em>immutable</em> after sharding. Choose carefully — changing requires resharding which is expensive.</p>` },
+
+  // PERFORMANCE
+  { id: 'performance', section: 'Performance', icon: '📊', level: 'intermediate',
+    q: 'How do you use explain() to diagnose and fix slow queries?',
+    a: `<pre>// Three verbosity levels
+db.users.find({ email: "x@x.com" }).explain()              // plan
+db.users.find({ email: "x@x.com" }).explain("executionStats") // stats
+db.users.find({ email: "x@x.com" }).explain("allPlansExecution") // all</pre>
+<p><strong>Key fields to analyze:</strong></p>
+<ul>
+<li><code>winningPlan.stage</code>: <em>IXSCAN</em> ✅ (index used) vs <em>COLLSCAN</em> ❌ (full scan)</li>
+<li><code>nReturned</code>: documents actually returned</li>
+<li><code>totalDocsExamined</code>: documents scanned — should be ≈ nReturned</li>
+<li><code>totalKeysExamined</code>: index keys scanned</li>
+<li><code>executionTimeMillis</code>: total execution time</li>
+<li><code>SORT</code> stage without <code>SORT_KEY</code> from index = in-memory sort ❌</li>
+</ul>
+<p><strong>Red flags:</strong> <code>totalDocsExamined >> nReturned</code> → missing/wrong index. <code>COLLSCAN</code> on large collection → needs index immediately.</p>` },
+
+  { id: 'performance', section: 'Performance', icon: '📊', level: 'intermediate',
+    q: 'What are MongoDB performance best practices?',
+    a: `<ul>
+<li><strong>Index strategically:</strong> Index all fields used in <code>$match</code>, <code>$sort</code>, <code>$lookup</code> foreign keys</li>
+<li><strong>Project only what you need:</strong> <code>{ name: 1, email: 1, _id: 0 }</code> — reduces network transfer</li>
+<li><strong>Place $match early in pipelines:</strong> Reduces documents through subsequent stages; $match on indexed fields uses indexes</li>
+<li><strong>Use covered queries</strong> for hot read paths — never touch documents</li>
+<li><strong>Connection pooling:</strong> Reuse connections (Mongoose and native driver do this automatically)</li>
+<li><strong>maxTimeMS:</strong> Set query timeout to prevent runaway operations from blocking resources</li>
+<li><strong>TTL indexes</strong> instead of cron jobs for expiring sessions, logs, temp data</li>
+<li><strong>Avoid $where and JavaScript expressions:</strong> No index usage, slow, security risk</li>
+<li><strong>Monitor with:</strong> <code>db.currentOp()</code>, <code>db.setProfilingLevel(2)</code>, Atlas Performance Advisor, slow query log</li>
+<li><strong>Pagination:</strong> Use range-based pagination (<code>_id > lastId</code>) instead of <code>skip()</code> for large collections</li>
+</ul>` },
+
+  // ADVANCED
+  { id: 'advanced', section: 'Advanced', icon: '🔥', level: 'advanced',
+    q: 'What are Change Streams and how do you implement them?',
+    a: `<p>Change Streams allow applications to <strong>subscribe to real-time data change notifications</strong> on a collection, database, or entire cluster. Built on the oplog. Requires a replica set.</p>
+<pre>// Watch a collection for new orders
+const changeStream = db.collection("orders").watch([
+  { $match: { "fullDocument.status": "placed" } }  // filter pipeline
+]);
+
+changeStream.on("change", (change) => {
+  console.log("Operation:", change.operationType); // insert/update/delete
+  console.log("Document:", change.fullDocument);
+  console.log("Resume token:", change.id);          // save for resumption
+});
+
+// Resume after failure using resume token
+const stream = db.collection("orders").watch([], {
+  resumeAfter: savedResumeToken   // picks up where you left off
+});</pre>
+<p><strong>Use cases:</strong> real-time dashboards, event sourcing, cache invalidation, notifications, microservice event propagation (alternative to Kafka for MongoDB-native stacks).</p>` },
+
+  { id: 'advanced', section: 'Advanced', icon: '🔥', level: 'advanced',
+    q: 'How do you secure a MongoDB deployment?',
+    a: `<ul>
+<li><strong>Enable authentication</strong> — <code>--auth</code> flag; use SCRAM-SHA-256 (default in 4.0+)</li>
+<li><strong>Role-Based Access Control (RBAC)</strong> — assign minimum required roles; create app-specific users, never use admin for apps</li>
+<li><strong>Network isolation</strong> — bind to specific IPs (<code>net.bindIp</code>), use VPC/private subnet, firewall port 27017</li>
+<li><strong>TLS/SSL</strong> — encrypt data in transit between clients, drivers, and replica set members</li>
+<li><strong>Encryption at rest</strong> — WiredTiger encryption (Enterprise) or filesystem encryption</li>
+<li><strong>Field-Level Encryption</strong> — CSFLE for encrypting specific sensitive fields client-side</li>
+<li><strong>Audit logging</strong> — log all admin operations, auth events, and data access</li>
+<li><strong>Keep MongoDB updated</strong> — security patches in each release</li>
+<li><strong>Never expose MongoDB to public internet</strong> — always behind application layer</li>
+</ul>` },
+
+  { id: 'advanced', section: 'Advanced', icon: '🔥', level: 'advanced',
+    q: 'What is Client-Side Field Level Encryption (CSFLE)?',
+    a: `<p><strong>CSFLE</strong> (MongoDB 4.2+) encrypts specific document fields on the <em>client before data reaches the server</em>. Even MongoDB/Atlas operators cannot read the plaintext.</p>
+<ul>
+<li><strong>Envelope encryption:</strong> Data Encryption Key (DEK) encrypts fields; Customer Master Key (CMK) wraps the DEK</li>
+<li><strong>CMK providers:</strong> AWS KMS, Azure Key Vault, GCP KMS, HashiCorp Vault, or local (dev only)</li>
+<li><strong>Deterministic encryption</strong> — same plaintext always produces same ciphertext; supports equality queries</li>
+<li><strong>Randomized encryption</strong> — stronger security; different ciphertext each time; no queries possible</li>
+</ul>
+<pre>// Schema for automatic CSFLE
+const schema = {
+  "mydb.patients": {
+    bsonType: "object",
+    properties: {
+      ssn: { encrypt: { bsonType: "string",
+                        algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic" }},
+      medicalRecord: { encrypt: { bsonType: "object",
+                                  algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random" }}
+    }
+  }
+};
+// Server only ever stores ciphertext — ideal for HIPAA, PCI-DSS</pre>` },
+
+  { id: 'advanced', section: 'Advanced', icon: '🔥', level: 'intermediate',
+    q: 'Explain Mongoose middleware, virtuals, and populate() with performance considerations.',
+    a: `<p><strong>Middleware (hooks):</strong></p>
+<pre>// Pre-save: hash password before storing
+userSchema.pre("save", async function(next) {
+  if (this.isModified("password"))
+    this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
+
+// Post-find: log query results count
+userSchema.post("find", (docs) => console.log("Found: " + docs.length));</pre>
+<p><strong>Virtuals:</strong> Computed properties not stored in DB</p>
+<pre>userSchema.virtual("fullName")
+  .get(function() { return \`\${this.firstName} \${this.lastName}\`; })
+  .set(function(v) {
+    [this.firstName, ...rest] = v.split(" ");
+    this.lastName = rest.join(" ");
+  });
+// Include in JSON: schema.set("toJSON", { virtuals: true })</pre>
+<p><strong>populate() performance:</strong></p>
+<ul>
+<li>Each populate() = <em>separate database query</em> — N+1 problem at scale</li>
+<li><strong>Alternatives:</strong> <code>$lookup</code> in aggregation (single round trip), denormalize with Extended Reference pattern, batch with DataLoader</li>
+</ul>` },
+];
+
+let currentFilter = 'all';
+let viewed = new Set();
+let totalQ = QA.length;
+
+function buildSections() {
+  const sections = {};
+  QA.forEach((item, idx) => {
+    if (!sections[item.id]) {
+      sections[item.id] = { title: item.section, icon: item.icon, items: [] };
+    }
+    sections[item.id].items.push({ ...item, idx });
+  });
+  return sections;
+}
+
+function renderAll(filterText = '', filterLevel = 'all') {
+  const container = document.getElementById('qa-container');
+  const sections = buildSections();
+  let totalVisible = 0;
+  let html = '';
+
+  Object.entries(sections).forEach(([id, sec]) => {
+    const filtered = sec.items.filter(item => {
+      const matchLevel = filterLevel === 'all' || item.level === filterLevel;
+      const matchText = !filterText || item.q.toLowerCase().includes(filterText) || item.a.toLowerCase().includes(filterText);
+      return matchLevel && matchText;
+    });
+    if (!filtered.length) return;
+    totalVisible += filtered.length;
+
+    html += `<section class="section" id="${id}">
+      <div class="section-header">
+        <div class="section-icon">${sec.icon}</div>
+        <div class="section-title">${sec.title}</div>
+        <div class="section-count">${filtered.length} questions</div>
+      </div>`;
+
+    filtered.forEach((item, i) => {
+      const isDone = viewed.has(item.idx);
+      html += `<div class="qa-card" id="card-${item.idx}">
+        <div class="qa-question" onclick="toggleCard(${item.idx})">
+          <span class="qa-num">${String(i+1).padStart(2,'0')}</span>
+          <span class="qa-q-text">${item.q}</span>
+          <div class="qa-meta">
+            <span class="badge badge-${item.level}">${item.level}</span>
+            <span class="viewed-dot${isDone?' done':''}" id="dot-${item.idx}"></span>
+            <span class="chevron" id="chev-${item.idx}">▼</span>
+          </div>
+        </div>
+        <div class="qa-answer" id="ans-${item.idx}">
+          <div class="ans-body">${item.a}</div>
+        </div>
+      </div>`;
+    });
+
+    html += `</section>`;
+  });
+
+  container.innerHTML = html;
+  document.getElementById('no-results').style.display = totalVisible ? 'none' : 'block';
+  document.getElementById('search-term').textContent = '"' + filterText + '"';
+  document.getElementById('total-q').textContent = totalQ;
+  updateProgress();
+}
+
+function toggleCard(idx) {
+  const card = document.getElementById(`card-${idx}`);
+  const ans = document.getElementById(`ans-${idx}`);
+  const chev = document.getElementById(`chev-${idx}`);
+  const dot = document.getElementById(`dot-${idx}`);
+  const isOpen = card.classList.contains('open');
+
+  // close all
+  document.querySelectorAll('.qa-card.open').forEach(c => {
+    c.classList.remove('open');
+  });
+
+  if (!isOpen) {
+    card.classList.add('open');
+    viewed.add(idx);
+    if (dot) dot.classList.add('done');
+    updateProgress();
+  }
+}
+
+function updateProgress() {
+  const pct = Math.round(viewed.size / totalQ * 100);
+  document.getElementById('viewed-q').textContent = viewed.size;
+  document.getElementById('pct').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = pct + '%';
+}
+
+function doSearch() {
+  const val = document.getElementById('search').value.toLowerCase().trim();
+  renderAll(val, currentFilter);
+}
+
+function setFilter(level, btn) {
+  currentFilter = level;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll(document.getElementById('search').value.toLowerCase().trim(), level);
+}
+
+// Nav click highlighting
+document.querySelectorAll('.nav-item').forEach(link => {
+  link.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    link.classList.add('active');
+  });
+});
+
+// Scroll highlight nav
+window.addEventListener('scroll', () => {
+  const btn = document.getElementById('scroll-top');
+  btn.classList.toggle('visible', window.scrollY > 300);
+
+  const sections = document.querySelectorAll('.section');
+  let current = '';
+  sections.forEach(sec => {
+    if (window.scrollY >= sec.offsetTop - 100) current = sec.id;
+  });
+  if (current) {
+    document.querySelectorAll('.nav-item').forEach(n => {
+      n.classList.toggle('active', n.getAttribute('href') === '#' + current);
+    });
+  }
+});
+
+// Init
+renderAll();
+</script>
+</body>
+</html>

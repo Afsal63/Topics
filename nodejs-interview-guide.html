@@ -1,0 +1,2305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Node.js Interview Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0d0e;
+    --bg2: #0d1214;
+    --bg3: #121820;
+    --bg4: #172030;
+    --surface: #1a2535;
+    --surface2: #1e2d3d;
+    --border: #1e3044;
+    --border2: #2a4a6b;
+    --blue: #38bdf8;
+    --blue-dim: #0ea5e9;
+    --blue-muted: #0c3054;
+    --blue-glow: rgba(56,189,248,0.10);
+    --amber: #fbbf24;
+    --red: #f87171;
+    --green: #4ade80;
+    --cyan: #22d3ee;
+    --purple: #c084fc;
+    --text: #e0f0ff;
+    --text2: #8aafcc;
+    --text3: #3d6080;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:9999}
+  body::after{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:linear-gradient(rgba(56,189,248,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+
+  header{position:relative;z-index:10;padding:60px 40px 40px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(56,189,248,0.05) 0%,transparent 100%)}
+  .header-inner{max-width:1200px;margin:0 auto}
+  .header-tag{font-size:11px;color:var(--blue);letter-spacing:.2em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .header-tag::before{content:'';display:inline-block;width:6px;height:6px;background:var(--blue);border-radius:50%;box-shadow:0 0 8px var(--blue);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+  h1{font-family:var(--sans);font-size:clamp(36px,6vw,72px);font-weight:800;line-height:1;color:var(--text);letter-spacing:-.02em}
+  h1 span{color:var(--blue);text-shadow:0 0 40px rgba(56,189,248,.4)}
+  .header-sub{margin-top:16px;font-size:13px;color:var(--text3);max-width:600px;line-height:1.6}
+  .stats-row{display:flex;gap:20px;margin-top:28px;flex-wrap:wrap}
+  .stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:7px 14px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px}
+  .stat-chip strong{color:var(--blue);font-size:15px;font-weight:700}
+
+  .layout{display:flex;max-width:1200px;margin:0 auto;position:relative;z-index:10}
+
+  .sidebar{width:260px;flex-shrink:0;padding:28px 0;position:sticky;top:0;height:100vh;overflow-y:auto;border-right:1px solid var(--border)}
+  .sidebar::-webkit-scrollbar{width:4px}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+  .sidebar-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);padding:0 22px;margin-bottom:10px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 22px;font-size:12px;color:var(--text3);cursor:pointer;transition:all .15s;border-left:2px solid transparent;text-decoration:none}
+  .nav-item:hover{color:var(--text);background:var(--blue-glow)}
+  .nav-item.active{color:var(--blue);border-left-color:var(--blue);background:var(--blue-glow)}
+  .nav-item .nav-count{margin-left:auto;background:var(--bg4);border:1px solid var(--border);border-radius:3px;padding:1px 6px;font-size:10px;color:var(--text3)}
+  .nav-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background .15s}
+  .nav-item.active .nav-dot{background:var(--blue);box-shadow:0 0 6px var(--blue)}
+  .progress-bar-wrap{padding:14px 22px;margin-bottom:8px}
+  .progress-label{font-size:11px;color:var(--text3);margin-bottom:6px;display:flex;justify-content:space-between}
+  .progress-label span{color:var(--blue)}
+  .progress-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--blue-dim),var(--blue));border-radius:2px;transition:width .4s ease;width:0%}
+
+  main{flex:1;padding:32px 40px;min-width:0}
+
+  .search-wrap{margin-bottom:28px;position:relative}
+  .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px}
+  .search-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:11px 14px 11px 40px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;transition:border-color .2s}
+  .search-input::placeholder{color:var(--text3)}
+  .search-input:focus{border-color:var(--blue-dim);box-shadow:0 0 0 3px rgba(56,189,248,.06)}
+  .filter-row{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+  .filter-btn{padding:5px 14px;font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border);border-radius:3px;color:var(--text3);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.05em}
+  .filter-btn:hover{border-color:var(--border2);color:var(--text2)}
+  .filter-btn.active{background:var(--blue-muted);border-color:var(--blue-dim);color:var(--blue)}
+  .filter-btn.scenario-btn.active{background:rgba(192,132,252,.12);border-color:#a855f7;color:var(--purple)}
+
+  .section{margin-bottom:44px;animation:fadeIn .4s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .section-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+  .section-icon{width:36px;height:36px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+  .section-title{font-family:var(--sans);font-size:20px;font-weight:700;color:var(--text)}
+  .section-count{margin-left:auto;font-size:11px;color:var(--text3);border:1px solid var(--border);padding:3px 10px;border-radius:3px}
+
+  .qa-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+  .qa-card:hover{border-color:var(--border2)}
+  .qa-card.open{border-color:var(--blue-muted)}
+  .qa-card.scenario .qa-question{background:linear-gradient(90deg,rgba(192,132,252,.04) 0%,transparent 100%)}
+  .qa-card.scenario.open{border-color:rgba(168,85,247,.4)}
+
+  .qa-question{padding:15px 18px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;user-select:none}
+  .qa-num{font-size:11px;color:var(--text3);min-width:22px;padding-top:1px;flex-shrink:0}
+  .qa-q-text{flex:1;font-size:13px;line-height:1.5;color:var(--text2);transition:color .2s}
+  .qa-card.open .qa-q-text,.qa-card:hover .qa-q-text{color:var(--text)}
+  .qa-meta{display:flex;align-items:center;gap:7px;flex-shrink:0}
+
+  .badge{font-size:10px;padding:2px 8px;border-radius:3px;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+  .badge-basic{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.2)}
+  .badge-intermediate{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2)}
+  .badge-advanced{background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.2)}
+  .badge-scenario{background:rgba(192,132,252,.12);color:#c084fc;border:1px solid rgba(192,132,252,.2)}
+
+  .chevron{color:var(--text3);font-size:10px;transition:transform .25s;flex-shrink:0}
+  .qa-card.open .chevron{transform:rotate(180deg);color:var(--blue)}
+  .qa-card.scenario.open .chevron{color:var(--purple)}
+  .viewed-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background .2s,box-shadow .2s}
+  .viewed-dot.done{background:var(--blue);box-shadow:0 0 5px var(--blue)}
+
+  .qa-answer{display:none;padding:0 18px 18px 52px;border-top:1px solid var(--border);animation:slideDown .2s ease}
+  @keyframes slideDown{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+  .qa-card.open .qa-answer{display:block}
+
+  .ans-body{font-size:13px;line-height:1.8;color:var(--text2);padding-top:14px}
+  .ans-body strong{color:var(--blue);font-weight:500}
+  .ans-body em{color:var(--amber);font-style:normal}
+  .ans-body ul{list-style:none;margin:10px 0}
+  .ans-body ul li{padding:4px 0 4px 18px;position:relative;color:var(--text2)}
+  .ans-body ul li::before{content:'→';position:absolute;left:0;color:var(--blue-dim);font-size:11px}
+  .ans-body p{margin:8px 0}
+
+  .scenario-box{background:linear-gradient(135deg,rgba(192,132,252,.06) 0%,rgba(56,189,248,.04) 100%);border:1px solid rgba(168,85,247,.25);border-radius:6px;padding:14px 16px;margin:10px 0 14px}
+  .scenario-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--purple);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .scenario-label::before{content:'◆';font-size:8px}
+  .scenario-text{font-size:13px;color:var(--text2);line-height:1.6;font-style:italic}
+
+  pre{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--blue-muted);border-radius:6px;padding:16px;margin:12px 0;overflow-x:auto;font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--text);position:relative;white-space:pre}
+  pre .c{color:var(--text3)}
+  pre .k{color:var(--blue)}
+  pre .s{color:var(--green)}
+  pre .fn{color:var(--cyan)}
+  pre .v{color:var(--amber)}
+  code{font-family:var(--mono);font-size:12px;background:var(--surface);padding:1px 6px;border-radius:3px;color:var(--cyan);border:1px solid var(--border)}
+
+  .tips-section{background:linear-gradient(135deg,rgba(56,189,248,.05) 0%,rgba(56,189,248,.02) 100%);border:1px solid var(--border2);border-radius:10px;padding:28px 32px;margin-bottom:48px;position:relative;overflow:hidden}
+  .tips-section::before{content:'TIPS';position:absolute;right:-10px;top:-20px;font-family:var(--sans);font-size:80px;font-weight:800;color:rgba(56,189,248,.04);letter-spacing:-.04em;pointer-events:none}
+  .tips-title{font-family:var(--sans);font-size:18px;font-weight:700;color:var(--blue);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+  .tip-item{display:flex;gap:14px;padding:13px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+  .tip-item:last-child{border-bottom:none}
+  .tip-num{width:24px;height:24px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--blue);flex-shrink:0;font-weight:700}
+  .tip-text{font-size:13px;line-height:1.6;color:var(--text2)}
+  .tip-text strong{color:var(--text)}
+
+  .no-results{text-align:center;padding:48px;color:var(--text3);font-size:13px}
+  .no-results span{color:var(--blue)}
+
+  .scroll-top{position:fixed;bottom:32px;right:32px;width:40px;height:40px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--blue);z-index:100;transition:all .2s;opacity:0;pointer-events:none}
+  .scroll-top.visible{opacity:1;pointer-events:all}
+  .scroll-top:hover{background:var(--surface2);box-shadow:0 0 12px rgba(56,189,248,.15)}
+
+  @media(max-width:768px){
+    header{padding:28px 18px 20px}
+    .layout{flex-direction:column}
+    .sidebar{width:100%;height:auto;position:static;border-right:none;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px;padding:12px}
+    .sidebar-label,.progress-bar-wrap{display:none}
+    .nav-item{padding:5px 10px;border-left:none;border-radius:4px;font-size:11px}
+    .nav-item.active{border-left:none;border-bottom:2px solid var(--blue)}
+    main{padding:16px}
+    .qa-answer{padding-left:18px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-tag">Interview Prep System</div>
+    <h1>Node<span>.js</span><br>Interview Guide</h1>
+    <p class="header-sub">Complete Q&amp;A with real-world scenario questions. Covers core concepts, async patterns, streams, performance, security and more.</p>
+    <div class="stats-row">
+      <div class="stat-chip"><strong id="total-q">0</strong> questions</div>
+      <div class="stat-chip"><strong id="viewed-q">0</strong> viewed</div>
+      <div class="stat-chip"><strong>11</strong> topics</div>
+      <div class="stat-chip"><strong id="pct">0%</strong> progress</div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar">
+    <div class="progress-bar-wrap">
+      <div class="progress-label">Progress <span id="prog-label">0%</span></div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+    </div>
+    <div class="sidebar-label">Topics</div>
+    <a class="nav-item active" href="#fundamentals"><span class="nav-dot"></span>Fundamentals<span class="nav-count">6</span></a>
+    <a class="nav-item" href="#async"><span class="nav-dot"></span>Async Patterns<span class="nav-count">5</span></a>
+    <a class="nav-item" href="#eventloop"><span class="nav-dot"></span>Event Loop<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#streams"><span class="nav-dot"></span>Streams &amp; Buffers<span class="nav-count">3</span></a>
+    <a class="nav-item" href="#modules"><span class="nav-dot"></span>Modules &amp; npm<span class="nav-count">3</span></a>
+    <a class="nav-item" href="#express"><span class="nav-dot"></span>Express / HTTP<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#performance"><span class="nav-dot"></span>Performance<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#security"><span class="nav-dot"></span>Security<span class="nav-count">3</span></a>
+    <a class="nav-item" href="#testing"><span class="nav-dot"></span>Testing<span class="nav-count">3</span></a>
+    <a class="nav-item" href="#design"><span class="nav-dot"></span>Design Patterns<span class="nav-count">3</span></a>
+    <a class="nav-item" href="#scenarios"><span class="nav-dot"></span>🎯 Scenarios<span class="nav-count">8</span></a>
+    <a class="nav-item" href="#tips"><span class="nav-dot"></span>Interview Tips</a>
+  </nav>
+
+  <main id="main-content">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" class="search-input" id="search" placeholder="Search questions, concepts, patterns..." oninput="doSearch()">
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('basic',this)">Basic</button>
+      <button class="filter-btn" onclick="setFilter('intermediate',this)">Intermediate</button>
+      <button class="filter-btn" onclick="setFilter('advanced',this)">Advanced</button>
+      <button class="filter-btn scenario-btn" onclick="setFilter('scenario',this)">🎯 Scenarios</button>
+    </div>
+    <div id="qa-container"></div>
+    <div id="no-results" class="no-results" style="display:none">No results for <span id="search-term"></span></div>
+
+    <!-- Tips -->
+    <div class="tips-section" id="tips">
+      <div class="tips-title">⚡ Interview Tips</div>
+      <div class="tip-item"><div class="tip-num">01</div><div class="tip-text"><strong>Always explain the event loop visually.</strong> Draw or describe the call stack → microtask queue → macrotask queue flow. Interviewers love seeing you trace through a mixed Promise + setTimeout snippet step-by-step.</div></div>
+      <div class="tip-item"><div class="tip-num">02</div><div class="tip-text"><strong>Know when NOT to use Node.js.</strong> CPU-intensive tasks (video encoding, ML inference) block the event loop. Mentioning Worker Threads or offloading to a separate service shows architectural maturity.</div></div>
+      <div class="tip-item"><div class="tip-num">03</div><div class="tip-text"><strong>Connect answers to real projects.</strong> "In my ERP system I used streams to export 50,000+ records as CSV without loading everything into memory" beats a textbook definition every time.</div></div>
+      <div class="tip-item"><div class="tip-num">04</div><div class="tip-text"><strong>Discuss error handling strategies.</strong> Unhandled promise rejections, domain errors, process-level uncaughtException — covering all layers signals production experience.</div></div>
+      <div class="tip-item"><div class="tip-num">05</div><div class="tip-text"><strong>Security is a differentiator.</strong> Mention rate limiting, helmet.js, input validation, OWASP Top 10, and dependency audits unprompted in architecture questions — most candidates skip this entirely.</div></div>
+      <div class="tip-item"><div class="tip-num">06</div><div class="tip-text"><strong>For scenario questions, use STAR.</strong> Situation → Task → Action → Result. Structure your answer, mention the trade-offs you considered, and quantify outcomes where possible (e.g. "reduced response time by 40%").</div></div>
+    </div>
+  </main>
+</div>
+
+<button class="scroll-top" id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+const QA = [
+// ─── FUNDAMENTALS ───────────────────────────────────────────────
+{id:'fundamentals',section:'Fundamentals',icon:'🟢',level:'basic',
+q:'What is Node.js? How does it differ from browser JavaScript?',
+a:`<p>Node.js is a <strong>server-side JavaScript runtime</strong> built on Chrome's V8 engine. It lets you run JavaScript outside the browser.</p>
+<ul>
+<li><strong>Global object:</strong> Browser has <code>window</code>; Node.js has <code>global</code> (or <code>globalThis</code>)</li>
+<li><strong>DOM/BOM:</strong> Not available in Node.js — no <code>document</code>, <code>localStorage</code>, <code>fetch</code> (before v18)</li>
+<li><strong>Modules:</strong> Node.js uses CommonJS (<code>require</code>) and ESM (<code>import</code>); browsers use ESM or bundlers</li>
+<li><strong>APIs:</strong> Node.js provides <code>fs</code>, <code>http</code>, <code>os</code>, <code>path</code>, <code>crypto</code>, <code>child_process</code> — none exist in browsers</li>
+<li><strong>Event loop:</strong> Node.js has additional phases (timers, I/O, setImmediate) beyond browser's model</li>
+</ul>
+<pre>// Node.js-only APIs
+const fs = require('fs');
+const os = require('os');
+console.log(os.cpus().length);     // number of CPU cores
+console.log(process.env.NODE_ENV); // environment variable
+console.log(__dirname);            // current directory path</pre>`},
+
+{id:'fundamentals',section:'Fundamentals',icon:'🟢',level:'basic',
+q:'What is the V8 engine and how does Node.js use it?',
+a:`<p><strong>V8</strong> is Google's open-source JavaScript engine (written in C++) that compiles JS directly to native machine code (JIT compilation) instead of interpreting it.</p>
+<p>Node.js wraps V8 and adds:</p>
+<ul>
+<li><strong>libuv</strong> — C library providing the event loop, async I/O, thread pool, timers</li>
+<li><strong>Node.js bindings</strong> — bridge between V8 (JS world) and OS-level C++ APIs (file system, network)</li>
+<li><strong>Node.js standard library</strong> — <code>fs</code>, <code>http</code>, <code>crypto</code>, etc., built on these bindings</li>
+</ul>
+<pre>// V8 features accessible in Node.js
+const v8 = require('v8');
+const heapStats = v8.getHeapStatistics();
+console.log(heapStats.heap_size_limit); // max heap size in bytes
+
+// Serialize/deserialize any JS value using V8's format
+const buf = v8.serialize({ name: 'Afsal', skills: ['Node.js'] });
+const obj = v8.deserialize(buf);
+console.log(obj); // { name: 'Afsal', skills: ['Node.js'] }</pre>`},
+
+{id:'fundamentals',section:'Fundamentals',icon:'🟢',level:'basic',
+q:'What is the difference between process.nextTick(), setImmediate(), and setTimeout(fn, 0)?',
+a:`<p>All three schedule callbacks asynchronously but at <strong>different phases of the event loop</strong>.</p>
+<ul>
+<li><strong>process.nextTick()</strong> — runs <em>before</em> the event loop continues, after the current operation. Part of the microtask queue. Highest priority.</li>
+<li><strong>Promise.then()</strong> — microtask queue, runs after nextTick callbacks</li>
+<li><strong>setImmediate()</strong> — runs in the <em>check phase</em> of the event loop, after I/O events</li>
+<li><strong>setTimeout(fn, 0)</strong> — runs in the <em>timers phase</em>; minimum delay ≈1ms, may run before or after setImmediate depending on context</li>
+</ul>
+<pre>console.log('1 - sync');
+
+setTimeout(() => console.log('2 - setTimeout'), 0);
+setImmediate(() => console.log('3 - setImmediate'));
+Promise.resolve().then(() => console.log('4 - Promise'));
+process.nextTick(() => console.log('5 - nextTick'));
+
+console.log('6 - sync');
+
+// Output order:
+// 1 - sync
+// 6 - sync
+// 5 - nextTick      ← microtask (nextTick queue)
+// 4 - Promise       ← microtask (promise queue)
+// 2 - setTimeout    ← macrotask (timers phase)
+// 3 - setImmediate  ← macrotask (check phase)
+// Note: setTimeout vs setImmediate order can vary outside I/O</pre>`},
+
+{id:'fundamentals',section:'Fundamentals',icon:'🟢',level:'intermediate',
+q:'What is the difference between require() and import/export (ESM)?',
+a:`<ul>
+<li><strong>CommonJS (require)</strong> — synchronous, dynamic, loads at runtime, file extension <code>.js</code> / <code>.cjs</code></li>
+<li><strong>ESM (import)</strong> — asynchronous, static (analyzed at parse time), enables tree-shaking, file extension <code>.mjs</code> or <code>"type":"module"</code> in package.json</li>
+</ul>
+<pre>// CommonJS (traditional Node.js)
+const path = require('path');
+const { readFile } = require('fs/promises');
+module.exports = { myFunc };      // named export
+module.exports = MyClass;         // default export
+
+// ES Modules (modern)
+import path from 'path';
+import { readFile } from 'fs/promises';
+export const myFunc = () => {};   // named export
+export default class MyClass {}   // default export
+
+// Dynamic import in ESM (lazy loading)
+const module = await import('./heavy-module.js');
+
+// Key differences
+// require: can be inside conditionals/functions
+if (condition) {
+  const lib = require('./lib'); // ✅ works
+}
+// import: must be at top level (static)
+// import lib from './lib';     // ❌ can't be conditional</pre>
+<p><strong>Interop:</strong> ESM can import CJS. CJS cannot require() ESM (use dynamic import instead).</p>`},
+
+{id:'fundamentals',section:'Fundamentals',icon:'🟢',level:'intermediate',
+q:'What is the global object in Node.js? What important properties does process have?',
+a:`<p>In Node.js, <code>global</code> is the top-level object (equivalent of browser's <code>window</code>). The <code>process</code> object is a key global that provides info and control over the current Node.js process.</p>
+<pre>// Key process properties & methods
+process.env.NODE_ENV           // environment variables
+process.argv                   // ['node', 'script.js', ...args]
+process.pid                    // process ID
+process.version                // Node.js version string
+process.platform               // 'linux', 'darwin', 'win32'
+process.memoryUsage()          // { rss, heapTotal, heapUsed, external }
+process.cpuUsage()             // { user, system } in microseconds
+process.uptime()               // seconds process has been running
+process.cwd()                  // current working directory
+process.chdir('/tmp')          // change working directory
+process.exit(0)                // exit with code (0 = success)
+process.nextTick(fn)           // schedule microtask
+process.stdout.write('hello')  // write to stdout
+process.stderr.write('err')    // write to stderr
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  server.close(() => {
+    db.disconnect();
+    process.exit(0);
+  });
+});</pre>`},
+
+{id:'fundamentals',section:'Fundamentals',icon:'🟢',level:'advanced',
+q:'How does Node.js handle CPU-intensive tasks? What are Worker Threads?',
+a:`<p>Node.js is <strong>single-threaded</strong> — CPU-intensive operations (image processing, crypto, compression, ML) block the event loop and degrade all concurrent requests.</p>
+<p><strong>Solutions:</strong></p>
+<ul>
+<li><strong>Worker Threads</strong> — run JS in parallel threads; share memory via <code>SharedArrayBuffer</code></li>
+<li><strong>child_process.fork()</strong> — spawn separate Node.js process; communicate via IPC</li>
+<li><strong>Cluster module</strong> — fork multiple processes sharing the same port</li>
+<li><strong>Offload to native addon (C++):</strong> via N-API</li>
+</ul>
+<pre>// worker_threads example
+// main.js
+const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
+
+if (isMainThread) {
+  const worker = new Worker(__filename, {
+    workerData: { numbers: [1,2,3,4,5,6,7,8,9,10] }
+  });
+  worker.on('message', result => console.log('Sum:', result));
+  worker.on('error', err => console.error(err));
+} else {
+  // Runs in worker thread — won't block main thread
+  const sum = workerData.numbers.reduce((a, b) => a + b, 0);
+  parentPort.postMessage(sum);
+}
+
+// When to use Worker Threads vs child_process.fork():
+// Worker Threads: shared memory, same codebase, lower overhead
+// fork(): full isolation, separate Node.js instance, IPC messaging</pre>`},
+
+// ─── ASYNC PATTERNS ─────────────────────────────────────────────
+{id:'async',section:'Async Patterns',icon:'⚡',level:'basic',
+q:'Explain callbacks, Promises, and async/await with examples.',
+a:`<p>Three generations of async handling in Node.js:</p>
+<pre>// ── 1. CALLBACKS (Node.js error-first convention) ──
+const fs = require('fs');
+fs.readFile('./data.json', 'utf8', (err, data) => {
+  if (err) return console.error('Error:', err);
+  console.log(JSON.parse(data));
+});
+// Problem: Callback Hell with nested async ops
+
+// ── 2. PROMISES ──
+const fsP = require('fs/promises');
+fsP.readFile('./data.json', 'utf8')
+  .then(data => JSON.parse(data))
+  .then(obj => console.log(obj))
+  .catch(err => console.error(err))
+  .finally(() => console.log('Done'));
+
+// ── 3. ASYNC/AWAIT (syntactic sugar over Promises) ──
+async function loadData() {
+  try {
+    const data = await fsP.readFile('./data.json', 'utf8');
+    return JSON.parse(data);
+  } catch (err) {
+    console.error('Failed to load:', err.message);
+    throw err; // re-throw so caller can handle
+  }
+}
+
+// Parallel execution — don't await sequentially if independent
+async function loadAll() {
+  const [users, orders] = await Promise.all([
+    fsP.readFile('./users.json', 'utf8'),
+    fsP.readFile('./orders.json', 'utf8')
+  ]);
+  return { users: JSON.parse(users), orders: JSON.parse(orders) };
+}</pre>`},
+
+{id:'async',section:'Async Patterns',icon:'⚡',level:'intermediate',
+q:'What are the differences between Promise.all, Promise.allSettled, Promise.race, and Promise.any?',
+a:`<ul>
+<li><strong>Promise.all()</strong> — waits for ALL to resolve. Rejects immediately if ANY rejects (fail-fast)</li>
+<li><strong>Promise.allSettled()</strong> — waits for ALL to settle (resolve or reject). Never rejects. Returns array of <code>{status, value/reason}</code></li>
+<li><strong>Promise.race()</strong> — resolves/rejects as soon as the FIRST promise settles (whichever wins)</li>
+<li><strong>Promise.any()</strong> — resolves with the FIRST fulfilled promise; rejects only if ALL reject (<code>AggregateError</code>)</li>
+</ul>
+<pre>const p1 = fetch('/api/users');
+const p2 = fetch('/api/orders');
+const p3 = Promise.reject(new Error('DB down'));
+
+// Promise.all — one failure kills all
+await Promise.all([p1, p2, p3]); // ❌ throws Error('DB down')
+
+// Promise.allSettled — get results regardless of failures
+const results = await Promise.allSettled([p1, p2, p3]);
+// [{ status:'fulfilled', value:... },
+//  { status:'fulfilled', value:... },
+//  { status:'rejected', reason: Error('DB down') }]
+
+// Promise.race — timeout pattern
+const timeout = new Promise((_, rej) =>
+  setTimeout(() => rej(new Error('Timeout')), 5000)
+);
+const data = await Promise.race([fetch('/api/slow'), timeout]);
+
+// Promise.any — use fastest available replica
+const data2 = await Promise.any([
+  fetch('https://replica-1/data'),
+  fetch('https://replica-2/data'),
+  fetch('https://replica-3/data')
+]); // resolves with whichever replica responds first</pre>`},
+
+{id:'async',section:'Async Patterns',icon:'⚡',level:'intermediate',
+q:'What are common async mistakes in Node.js and how do you avoid them?',
+a:`<ul>
+<li><strong>Forgetting await</strong> — function returns a Promise, not the value. Easy to miss, hard to debug.</li>
+<li><strong>Sequential awaits when parallel is possible</strong> — wastes latency</li>
+<li><strong>Unhandled promise rejections</strong> — crash the process in Node.js 15+</li>
+<li><strong>Async callback in forEach</strong> — forEach ignores returned promises</li>
+<li><strong>try/catch not catching async errors</strong> — must be inside async function</li>
+</ul>
+<pre>// ❌ MISTAKE 1: forgetting await
+async function bad() {
+  const user = getUser(1);  // returns Promise, not user!
+  console.log(user.name);   // undefined
+}
+
+// ❌ MISTAKE 2: sequential when parallel is fine
+async function slow() {
+  const user = await getUser(1);    // 100ms
+  const posts = await getPosts(1);  // 100ms — total: 200ms
+}
+// ✅ FIX: parallel
+async function fast() {
+  const [user, posts] = await Promise.all([getUser(1), getPosts(1)]);
+  // total: ~100ms
+}
+
+// ❌ MISTAKE 3: async inside forEach
+async function bad2(ids) {
+  ids.forEach(async (id) => {  // promises are ignored!
+    await processItem(id);
+  });
+}
+// ✅ FIX: Promise.all with map
+async function good2(ids) {
+  await Promise.all(ids.map(id => processItem(id)));
+}
+
+// ✅ Unhandled rejection handler (safety net)
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection:', reason);
+  // gracefully shut down
+  process.exit(1);
+});</pre>`},
+
+{id:'async',section:'Async Patterns',icon:'⚡',level:'advanced',
+q:'What are async iterators and for-await-of loops?',
+a:`<p><strong>Async iterators</strong> let you iterate over asynchronous data sources (streams, paginated APIs, database cursors) with <code>for await...of</code>.</p>
+<pre>// Custom async generator — paginated API
+async function* fetchAllPages(url) {
+  let page = 1;
+  while (true) {
+    const res = await fetch(\`\${url}?page=\${page}&limit=100\`);
+    const { data, hasMore } = await res.json();
+    yield data;          // yields one page at a time
+    if (!hasMore) break;
+    page++;
+  }
+}
+
+// Consume with for-await-of
+async function processAllUsers() {
+  for await (const page of fetchAllPages('/api/users')) {
+    for (const user of page) {
+      await processUser(user);
+    }
+  }
+}
+
+// Node.js Readable streams are async iterables
+const { createReadStream } = require('fs');
+const { createInterface } = require('readline');
+
+async function processLargeFile(filePath) {
+  const rl = createInterface({
+    input: createReadStream(filePath),
+    crlfDelay: Infinity
+  });
+  for await (const line of rl) {
+    processLine(line); // process one line at a time, no memory buildup
+  }
+}</pre>`},
+
+{id:'async',section:'Async Patterns',icon:'⚡',level:'advanced',
+q:'How do you implement a retry mechanism with exponential backoff?',
+a:`<p>A robust retry strategy that doubles wait time between attempts and adds jitter to prevent thundering herd.</p>
+<pre>async function withRetry(fn, options = {}) {
+  const {
+    maxAttempts = 3,
+    baseDelay = 1000,    // 1 second
+    maxDelay = 30000,    // 30 seconds cap
+    factor = 2,          // exponential factor
+    jitter = true,       // randomize to avoid sync retries
+    retryOn = (err) => true  // retry all errors by default
+  } = options;
+
+  let attempt = 0;
+  while (attempt < maxAttempts) {
+    try {
+      return await fn();
+    } catch (err) {
+      attempt++;
+      if (attempt >= maxAttempts || !retryOn(err)) throw err;
+
+      // Exponential backoff: 1s → 2s → 4s → 8s...
+      let delay = Math.min(baseDelay * Math.pow(factor, attempt - 1), maxDelay);
+      // Jitter: randomize ±30% to spread retries
+      if (jitter) delay *= (0.7 + Math.random() * 0.6);
+
+      console.log(\`Attempt \${attempt} failed. Retrying in \${Math.round(delay)}ms...\`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+
+// Usage
+const data = await withRetry(
+  () => fetch('https://api.example.com/data').then(r => r.json()),
+  {
+    maxAttempts: 4,
+    retryOn: (err) => err.status !== 404  // don't retry 404s
+  }
+);</pre>`},
+
+// ─── EVENT LOOP ─────────────────────────────────────────────────
+{id:'eventloop',section:'Event Loop',icon:'🔄',level:'basic',
+q:'Explain the Node.js Event Loop in detail.',
+a:`<p>The event loop is what enables Node.js to perform <strong>non-blocking I/O</strong> despite being single-threaded, by offloading operations to the OS kernel or libuv thread pool.</p>
+<p><strong>Event Loop Phases (in order):</strong></p>
+<ul>
+<li><strong>timers</strong> — executes <code>setTimeout</code> and <code>setInterval</code> callbacks whose threshold has elapsed</li>
+<li><strong>pending callbacks</strong> — I/O callbacks deferred from the previous loop iteration</li>
+<li><strong>idle/prepare</strong> — internal use only</li>
+<li><strong>poll</strong> — retrieves new I/O events; executes I/O callbacks. Blocks here if nothing scheduled</li>
+<li><strong>check</strong> — executes <code>setImmediate()</code> callbacks</li>
+<li><strong>close callbacks</strong> — e.g. <code>socket.on('close', ...)</code></li>
+</ul>
+<p><strong>Between each phase:</strong> Node.js drains the microtask queues — first <code>process.nextTick</code> queue, then Promise queue.</p>
+<pre>// Trace through this:
+setTimeout(() => console.log('timer'), 0);
+setImmediate(() => console.log('immediate'));
+Promise.resolve().then(() => console.log('promise'));
+process.nextTick(() => console.log('nextTick'));
+console.log('sync');
+
+// sync → nextTick → promise → timer/immediate (order may vary)
+// Inside an I/O callback, setImmediate always runs before setTimeout</pre>`},
+
+{id:'eventloop',section:'Event Loop',icon:'🔄',level:'intermediate',
+q:'What is the libuv thread pool? What operations use it?',
+a:`<p><strong>libuv</strong> maintains a thread pool (default: 4 threads, max 1024) for operations that don't have async OS support or are too complex to be non-blocking.</p>
+<p><strong>Operations that use the thread pool:</strong></p>
+<ul>
+<li><code>fs.*</code> file system operations (read, write, stat, etc.)</li>
+<li><code>crypto</code> — <code>pbkdf2</code>, <code>scrypt</code>, <code>randomBytes</code></li>
+<li><code>zlib</code> compression/decompression</li>
+<li><code>dns.lookup()</code> (not <code>dns.resolve()</code>)</li>
+<li>Some <code>http</code> operations</li>
+</ul>
+<p><strong>Operations that do NOT use the thread pool</strong> (use OS async directly):</p>
+<ul>
+<li>TCP/UDP networking — <code>net</code>, <code>http</code> connections</li>
+<li>Child processes</li>
+<li>Pipes</li>
+</ul>
+<pre>// Increase thread pool size for I/O-heavy apps
+process.env.UV_THREADPOOL_SIZE = 16; // must be set BEFORE requiring anything
+
+// Demonstrate thread pool saturation (4 concurrent crypto ops)
+const crypto = require('crypto');
+const start = Date.now();
+
+function hash(i) {
+  crypto.pbkdf2('password', 'salt', 100000, 64, 'sha512', () => {
+    console.log(\`Hash \${i}: \${Date.now() - start}ms\`);
+  });
+}
+// With 4 threads: first 4 finish ~same time, then next batch
+[1,2,3,4,5,6,7,8].forEach(hash);</pre>`},
+
+{id:'eventloop',section:'Event Loop',icon:'🔄',level:'intermediate',
+q:'What is blocking the event loop and how do you detect/prevent it?',
+a:`<p>Any synchronous code that runs too long <strong>blocks the event loop</strong> — no I/O callbacks, no timers, no HTTP requests are processed during that time.</p>
+<p><strong>Common causes:</strong></p>
+<ul>
+<li>JSON.parse / JSON.stringify on huge payloads</li>
+<li>Synchronous file reads (<code>fs.readFileSync</code>) on large files</li>
+<li>Complex regex on long strings (ReDoS)</li>
+<li>Sorting/filtering massive in-memory arrays</li>
+<li>Crypto operations without async variants</li>
+</ul>
+<pre>// ❌ Blocking — freezes server for all users
+app.get('/report', (req, res) => {
+  const data = fs.readFileSync('./huge-file.json');  // blocks!
+  const parsed = JSON.parse(data);                   // blocks!
+  res.json(parsed);
+});
+
+// ✅ Non-blocking
+app.get('/report', async (req, res) => {
+  const data = await fs.promises.readFile('./huge-file.json');
+  res.json(JSON.parse(data));
+});
+
+// ✅ Split long synchronous work across event loop ticks
+function processChunked(items, chunkSize = 1000) {
+  return new Promise(resolve => {
+    const results = [];
+    let i = 0;
+    function processChunk() {
+      const end = Math.min(i + chunkSize, items.length);
+      while (i < end) results.push(heavyProcess(items[i++]));
+      if (i < items.length) setImmediate(processChunk); // yield to event loop
+      else resolve(results);
+    }
+    processChunk();
+  });
+}
+
+// Detection tools
+// - clinic.js (clinic doctor, clinic flame)
+// - 0x (flamegraph profiler)
+// - --inspect + Chrome DevTools
+// - blocked-at npm package</pre>`},
+
+{id:'eventloop',section:'Event Loop',icon:'🔄',level:'advanced',
+q:'What is backpressure and why does it matter in event-driven systems?',
+a:`<p><strong>Backpressure</strong> occurs when a data producer generates data faster than a consumer can process it. Without handling it, memory grows unboundedly and the process crashes.</p>
+<pre>// ❌ No backpressure — memory grows unboundedly
+const readable = fs.createReadStream('./huge-file.csv');
+const writable = fs.createWriteStream('./output.csv');
+readable.on('data', chunk => {
+  writable.write(chunk); // writable.write returns false when buffer full!
+  // but we never check — internal buffer fills up
+});
+
+// ✅ Manual backpressure handling
+readable.on('data', chunk => {
+  const canContinue = writable.write(chunk);
+  if (!canContinue) {
+    readable.pause();           // stop reading from source
+    writable.once('drain', () => {
+      readable.resume();        // resume when consumer is ready
+    });
+  }
+});
+
+// ✅ BEST: pipe() handles backpressure automatically
+readable.pipe(writable);
+
+// ✅ BEST for transforms: pipeline() (with error handling)
+const { pipeline } = require('stream/promises');
+await pipeline(
+  fs.createReadStream('./input.csv'),
+  createTransformStream(),
+  fs.createWriteStream('./output.csv')
+); // automatically handles backpressure + cleans up on error</pre>`},
+
+// ─── STREAMS ────────────────────────────────────────────────────
+{id:'streams',section:'Streams & Buffers',icon:'🌊',level:'intermediate',
+q:'What are Node.js Streams? Explain the four types.',
+a:`<p>Streams are <strong>EventEmitter-based interfaces for reading/writing data sequentially</strong> without loading everything into memory. Essential for large files, HTTP responses, and real-time processing.</p>
+<ul>
+<li><strong>Readable</strong> — data source you read from (<code>fs.createReadStream</code>, HTTP request body, <code>process.stdin</code>)</li>
+<li><strong>Writable</strong> — data sink you write to (<code>fs.createWriteStream</code>, HTTP response, <code>process.stdout</code>)</li>
+<li><strong>Duplex</strong> — both readable and writable (<code>net.Socket</code>, TCP sockets)</li>
+<li><strong>Transform</strong> — duplex stream that modifies data as it passes through (<code>zlib.createGzip()</code>, CSV parser)</li>
+</ul>
+<pre>const { Transform, pipeline } = require('stream');
+const { createReadStream, createWriteStream } = require('fs');
+const zlib = require('zlib');
+
+// Custom Transform stream — uppercase every line
+const upperCase = new Transform({
+  transform(chunk, encoding, callback) {
+    this.push(chunk.toString().toUpperCase());
+    callback();
+  }
+});
+
+// Pipeline: read → transform → gzip → write
+// Memory usage stays constant regardless of file size
+await pipeline(
+  createReadStream('./input.txt'),    // Readable
+  upperCase,                          // Transform
+  zlib.createGzip(),                  // Transform (compress)
+  createWriteStream('./output.txt.gz') // Writable
+);
+console.log('Done — used ~constant memory throughout!');</pre>`},
+
+{id:'streams',section:'Streams & Buffers',icon:'🌊',level:'intermediate',
+q:'What is a Buffer in Node.js? When do you use it?',
+a:`<p>A <strong>Buffer</strong> is a fixed-size region of raw binary data (memory allocated outside V8 heap). Used when dealing with binary data like files, images, network packets, crypto.</p>
+<pre>// Creating buffers
+const b1 = Buffer.alloc(10);               // 10 bytes, zero-filled (safe)
+const b2 = Buffer.allocUnsafe(10);          // 10 bytes, uninitialized (faster but may contain old data)
+const b3 = Buffer.from('Hello, Node.js');   // from string (UTF-8 default)
+const b4 = Buffer.from([0x48, 0x65, 0x6c]); // from byte array
+const b5 = Buffer.from(arrayBuffer);        // from ArrayBuffer
+
+// Buffer ↔ String conversions
+const buf = Buffer.from('Hello');
+console.log(buf.toString('utf8'));   // 'Hello'
+console.log(buf.toString('hex'));    // '48656c6c6f'
+console.log(buf.toString('base64')); // 'SGVsbG8='
+
+// Reading/Writing binary data (e.g. custom binary protocol)
+const packet = Buffer.alloc(8);
+packet.writeUInt32BE(1001, 0);   // write message ID at offset 0
+packet.writeUInt32BE(256, 4);    // write payload length at offset 4
+const msgId = packet.readUInt32BE(0); // read back: 1001
+
+// Concatenate buffers
+const combined = Buffer.concat([b3, Buffer.from(' World')]);
+console.log(combined.toString()); // 'Hello, Node.js World'</pre>`},
+
+{id:'streams',section:'Streams & Buffers',icon:'🌊',level:'advanced',
+q:'How do you stream a large file download in Express? What about CSV export?',
+a:`<pre>const express = require('express');
+const { createReadStream } = require('fs');
+const { pipeline } = require('stream/promises');
+const { Transform } = require('stream');
+
+const app = express();
+
+// ── Stream a large file download ──
+app.get('/download/:file', (req, res) => {
+  const filePath = \`./uploads/\${req.params.file}\`;
+
+  res.setHeader('Content-Type', 'application/octet-stream');
+  res.setHeader('Content-Disposition', \`attachment; filename="\${req.params.file}"\`);
+
+  const stream = createReadStream(filePath);
+  stream.on('error', err => {
+    res.status(404).json({ error: 'File not found' });
+  });
+  stream.pipe(res); // pipe handles backpressure automatically
+});
+
+// ── Stream CSV export from DB cursor ──
+app.get('/export/users', async (req, res) => {
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename="users.csv"');
+
+  const cursor = db.collection('users').find({}).stream(); // MongoDB cursor as stream
+  const csvTransform = new Transform({
+    objectMode: true,
+    transform(user, _, cb) {
+      cb(null, \`\${user._id},\${user.name},\${user.email}\\n\`);
+    },
+    flush(cb) {
+      this.push('id,name,email\\n'); // prepend header... (use header-stream in practice)
+      cb();
+    }
+  });
+
+  // Write CSV header first
+  res.write('id,name,email\\n');
+
+  await pipeline(cursor, csvTransform, res);
+  // Memory stays ~constant even for 1 million rows
+});</pre>`},
+
+// ─── MODULES ────────────────────────────────────────────────────
+{id:'modules',section:'Modules & npm',icon:'📦',level:'basic',
+q:'How does the Node.js module system work? What is the module cache?',
+a:`<p>When you <code>require()</code> a module, Node.js:</p>
+<ul>
+<li><strong>Resolves</strong> the path (file, folder with index.js, node_modules)</li>
+<li><strong>Loads</strong> the file (wraps in a function: <code>(exports, require, module, __filename, __dirname) => {...}</code>)</li>
+<li><strong>Evaluates</strong> the code once</li>
+<li><strong>Caches</strong> the result in <code>require.cache</code> keyed by absolute path</li>
+</ul>
+<p>Subsequent <code>require()</code> calls return the <strong>cached exports object</strong> — modules are singletons.</p>
+<pre>// Module wrapper (what Node.js wraps every file in)
+(function(exports, require, module, __filename, __dirname) {
+  // Your module code here
+  module.exports = { hello: 'world' };
+});
+
+// Module cache — singleton pattern is guaranteed
+const a = require('./config');
+const b = require('./config');
+console.log(a === b); // true — same object reference
+
+// Cache invalidation (use sparingly — for hot reloading in dev)
+function requireFresh(modulePath) {
+  const resolved = require.resolve(modulePath);
+  delete require.cache[resolved];
+  return require(resolved);
+}
+
+// Circular dependency — both modules get partially initialized exports
+// a.js requires b.js which requires a.js → a.exports may be {}
+// Solution: restructure to avoid cycles or use lazy requires</pre>`},
+
+{id:'modules',section:'Modules & npm',icon:'📦',level:'intermediate',
+q:'What is package.json? Explain key fields: main, exports, scripts, peerDependencies.',
+a:`<pre>{
+  "name": "my-app",
+  "version": "1.0.0",
+  "main": "./dist/index.js",      // entry for require() — CJS
+  "module": "./dist/index.esm.js", // entry for bundlers (webpack/rollup)
+  "exports": {                     // modern entry points (Node 12+, overrides "main")
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./utils": "./dist/utils.js"   // subpath exports
+  },
+  "type": "module",                // "module" = ESM default; "commonjs" = CJS default
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "nodemon src/index.ts",
+    "build": "tsc && rollup -c",
+    "test": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "prepare": "npm run build"     // runs before npm publish automatically
+  },
+  "dependencies": {               // required at runtime
+    "express": "^4.18.2"
+  },
+  "devDependencies": {            // only for development/build
+    "typescript": "^5.0.0",
+    "jest": "^29.0.0"
+  },
+  "peerDependencies": {           // required by consumer to install separately
+    "react": ">=17.0.0"           // for library packages
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}</pre>`},
+
+{id:'modules',section:'Modules & npm',icon:'📦',level:'intermediate',
+q:'What is the difference between npm install, npm ci, and npm audit?',
+a:`<ul>
+<li><strong>npm install</strong> — installs dependencies; creates/updates <code>package-lock.json</code>; resolves semver ranges. Used during development.</li>
+<li><strong>npm ci</strong> — "clean install"; deletes <code>node_modules</code> first, installs exact versions from <code>package-lock.json</code>. Faster, deterministic. Use in CI/CD pipelines.</li>
+<li><strong>npm audit</strong> — scans dependencies for known vulnerabilities using the npm advisory database</li>
+<li><strong>npm audit fix</strong> — automatically upgrades vulnerable packages to patched versions</li>
+</ul>
+<pre># Development workflow
+npm install              # install from package.json, update lock file
+npm install express      # add new dep + update lock
+npm install -D jest      # add dev dep
+
+# CI/CD pipeline (always use ci, not install)
+npm ci                   # exact versions from lock file, no changes
+
+# Security
+npm audit                # show vulnerability report
+npm audit fix            # auto-fix where possible
+npm audit fix --force    # force semver-major upgrades (may break things)
+npm outdated             # show which packages have newer versions
+npx npm-check-updates    # interactive upgrade tool</pre>`},
+
+// ─── EXPRESS / HTTP ─────────────────────────────────────────────
+{id:'express',section:'Express / HTTP',icon:'🚀',level:'basic',
+q:'What is middleware in Express? How does the middleware chain work?',
+a:`<p>Middleware functions are functions that have access to <code>req</code>, <code>res</code>, and <code>next</code>. They execute in the order they are defined.</p>
+<pre>const express = require('express');
+const app = express();
+
+// ── Types of middleware ──
+
+// 1. Application-level middleware
+app.use(express.json());  // parse JSON bodies
+app.use((req, res, next) => {
+  req.requestTime = Date.now();
+  console.log(\`\${req.method} \${req.path}\`);
+  next(); // MUST call next() or the request hangs
+});
+
+// 2. Route-level middleware
+const auth = (req, res, next) => {
+  const token = req.headers.authorization;
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+  req.user = verifyToken(token);
+  next();
+};
+app.get('/profile', auth, (req, res) => res.json(req.user));
+
+// 3. Error-handling middleware (4 params — MUST have all 4)
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    error: err.message,
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
+
+// Middleware order matters!
+// app.use() at top → runs for ALL routes below it
+// app.use() after routes → runs only for matching unhandled requests</pre>`},
+
+{id:'express',section:'Express / HTTP',icon:'🚀',level:'intermediate',
+q:'How do you build a production-ready Express server with error handling and validation?',
+a:`<pre>const express = require('express');
+const { body, validationResult } = require('express-validator');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+
+const app = express();
+
+// ── Security & parsing middleware ──
+app.use(helmet());                         // security headers
+app.use(express.json({ limit: '1mb' }));   // parse JSON, limit body size
+app.use(express.urlencoded({ extended: true }));
+
+// ── Rate limiting ──
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,                  // limit per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', limiter);
+
+// ── Validation middleware factory ──
+const validate = (validations) => async (req, res, next) => {
+  await Promise.all(validations.map(v => v.run(req)));
+  const errors = validationResult(req);
+  if (!errors.isEmpty())
+    return res.status(422).json({ errors: errors.array() });
+  next();
+};
+
+// ── Route with validation ──
+app.post('/api/users',
+  validate([
+    body('email').isEmail().normalizeEmail(),
+    body('password').isLength({ min: 8 }).matches(/\d/),
+    body('name').trim().notEmpty()
+  ]),
+  async (req, res, next) => {
+    try {
+      const user = await UserService.create(req.body);
+      res.status(201).json(user);
+    } catch (err) {
+      next(err); // pass to error handler
+    }
+  }
+);
+
+// ── 404 handler ──
+app.use((req, res) => res.status(404).json({ error: 'Not found' }));
+
+// ── Global error handler ──
+app.use((err, req, res, next) => {
+  const status = err.statusCode || err.status || 500;
+  res.status(status).json({
+    error: err.message || 'Internal server error',
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
+  });
+});
+
+module.exports = app;</pre>`},
+
+{id:'express',section:'Express / HTTP',icon:'🚀',level:'intermediate',
+q:'What is the difference between HTTP/1.1, HTTP/2, and WebSockets?',
+a:`<ul>
+<li><strong>HTTP/1.1</strong> — one request per connection at a time; browsers open 6 parallel connections. Head-of-line blocking.</li>
+<li><strong>HTTP/2</strong> — multiplexed streams over a single connection; server push; header compression (HPACK). Much faster for many small resources.</li>
+<li><strong>WebSocket</strong> — full-duplex persistent connection. Either side can send at any time. Upgrades from HTTP via <code>Upgrade: websocket</code> header.</li>
+</ul>
+<pre>// HTTP/2 server in Node.js
+const http2 = require('http2');
+const fs = require('fs');
+
+const server = http2.createSecureServer({
+  key: fs.readFileSync('./key.pem'),
+  cert: fs.readFileSync('./cert.pem')
+});
+
+server.on('stream', (stream, headers) => {
+  const path = headers[':path'];
+  stream.respond({ ':status': 200, 'content-type': 'text/plain' });
+  stream.end('Hello HTTP/2!');
+});
+
+// WebSocket with ws library
+const { WebSocketServer } = require('ws');
+const wss = new WebSocketServer({ port: 8080 });
+
+wss.on('connection', (ws, req) => {
+  console.log('Client connected:', req.socket.remoteAddress);
+
+  ws.on('message', (data) => {
+    // Broadcast to all connected clients
+    wss.clients.forEach(client => {
+      if (client.readyState === ws.OPEN) {
+        client.send(JSON.stringify({ event: 'message', data: data.toString() }));
+      }
+    });
+  });
+
+  ws.on('close', () => console.log('Client disconnected'));
+  ws.send(JSON.stringify({ event: 'connected', message: 'Welcome!' }));
+});</pre>`},
+
+{id:'express',section:'Express / HTTP',icon:'🚀',level:'advanced',
+q:'How do you implement JWT authentication in a Node.js API?',
+a:`<pre>const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
+const JWT_SECRET = process.env.JWT_SECRET; // min 32 chars, random
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+
+// ── Generate tokens ──
+function generateTokens(userId, role) {
+  const accessToken = jwt.sign(
+    { sub: userId, role },
+    JWT_SECRET,
+    { expiresIn: '15m', issuer: 'myapp' }
+  );
+  const refreshToken = jwt.sign(
+    { sub: userId },
+    JWT_REFRESH_SECRET,
+    { expiresIn: '7d' }
+  );
+  return { accessToken, refreshToken };
+}
+
+// ── Auth middleware ──
+function authenticate(req, res, next) {
+  const header = req.headers.authorization;
+  if (!header?.startsWith('Bearer '))
+    return res.status(401).json({ error: 'Missing token' });
+
+  try {
+    const token = header.slice(7);
+    req.user = jwt.verify(token, JWT_SECRET, { issuer: 'myapp' });
+    next();
+  } catch (err) {
+    if (err.name === 'TokenExpiredError')
+      return res.status(401).json({ error: 'Token expired', code: 'TOKEN_EXPIRED' });
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}
+
+// ── Login route ──
+app.post('/auth/login', async (req, res, next) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user || !await bcrypt.compare(req.body.password, user.password))
+      return res.status(401).json({ error: 'Invalid credentials' });
+
+    const tokens = generateTokens(user._id, user.role);
+    // Store refresh token hash in DB for rotation/revocation
+    await user.updateOne({ refreshToken: await bcrypt.hash(tokens.refreshToken, 10) });
+    res.json(tokens);
+  } catch (err) { next(err); }
+});
+
+// ── Protected route ──
+app.get('/api/me', authenticate, (req, res) => {
+  res.json({ userId: req.user.sub, role: req.user.role });
+});</pre>`},
+
+// ─── PERFORMANCE ────────────────────────────────────────────────
+{id:'performance',section:'Performance',icon:'📊',level:'intermediate',
+q:'How does the Node.js Cluster module work? When should you use it?',
+a:`<p>The Cluster module allows you to <strong>fork multiple worker processes</strong>, each running the same server and sharing the same port. Utilizes all CPU cores.</p>
+<pre>const cluster = require('cluster');
+const http = require('http');
+const os = require('os');
+
+if (cluster.isPrimary) {
+  const numCPUs = os.cpus().length;
+  console.log(\`Primary \${process.pid} spawning \${numCPUs} workers\`);
+
+  // Fork one worker per CPU core
+  for (let i = 0; i < numCPUs; i++) cluster.fork();
+
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(\`Worker \${worker.process.pid} died (code: \${code}). Restarting...\`);
+    cluster.fork(); // auto-restart crashed workers
+  });
+
+  // Graceful rolling restart
+  process.on('SIGUSR2', () => {
+    const workers = Object.values(cluster.workers);
+    let i = 0;
+    const restart = () => {
+      if (i >= workers.length) return;
+      workers[i].on('exit', () => { cluster.fork(); restart(); });
+      workers[i++].kill('SIGTERM');
+    };
+    restart();
+  });
+} else {
+  // Worker process — each runs its own event loop
+  const app = require('./app');
+  app.listen(3000, () =>
+    console.log(\`Worker \${process.pid} listening on :3000\`));
+}
+
+// Modern alternative: use PM2 cluster mode
+// pm2 start app.js -i max  (forks to match CPU count)</pre>`},
+
+{id:'performance',section:'Performance',icon:'📊',level:'intermediate',
+q:'How do you implement caching in Node.js?',
+a:`<pre>// ── In-memory cache (simple, single instance only) ──
+const cache = new Map();
+
+function memoize(fn, ttl = 60000) {
+  return async function(...args) {
+    const key = JSON.stringify(args);
+    const cached = cache.get(key);
+    if (cached && Date.now() - cached.timestamp < ttl)
+      return cached.value;
+    const value = await fn(...args);
+    cache.set(key, { value, timestamp: Date.now() });
+    return value;
+  };
+}
+
+const getCachedUser = memoize(getUserFromDB, 5 * 60 * 1000); // 5 min TTL
+
+// ── Redis cache (distributed, works across instances) ──
+const redis = require('ioredis');
+const client = new redis(process.env.REDIS_URL);
+
+async function getWithCache(key, fetchFn, ttlSeconds = 300) {
+  const cached = await client.get(key);
+  if (cached) return JSON.parse(cached);
+
+  const data = await fetchFn();
+  await client.setex(key, ttlSeconds, JSON.stringify(data));
+  return data;
+}
+
+// Cache-aside pattern in Express
+app.get('/api/products', async (req, res, next) => {
+  try {
+    const data = await getWithCache(
+      'products:all',
+      () => Product.find({ active: true }).lean(),
+      300 // 5 minutes
+    );
+    res.json(data);
+  } catch (err) { next(err); }
+});
+
+// Cache invalidation
+async function updateProduct(id, updates) {
+  await Product.findByIdAndUpdate(id, updates);
+  await client.del('products:all');          // invalidate list
+  await client.del(\`products:\${id}\`);      // invalidate specific
+}</pre>`},
+
+{id:'performance',section:'Performance',icon:'📊',level:'advanced',
+q:'How do you profile and debug memory leaks in Node.js?',
+a:`<p>Memory leaks in Node.js are usually caused by: global variables accumulating state, event listener accumulation, closures holding references, or uncleaned timers/intervals.</p>
+<pre>// ── Detect memory growth ──
+setInterval(() => {
+  const { heapUsed, heapTotal, rss } = process.memoryUsage();
+  console.log({
+    heapUsed: \`\${Math.round(heapUsed / 1024 / 1024)}MB\`,
+    heapTotal: \`\${Math.round(heapTotal / 1024 / 1024)}MB\`,
+    rss: \`\${Math.round(rss / 1024 / 1024)}MB\`
+  });
+}, 10000);
+
+// ── Common leak patterns & fixes ──
+
+// ❌ LEAK: growing global cache with no eviction
+const cache = {};
+app.use((req, res, next) => {
+  cache[req.ip] = Date.now(); // grows forever!
+  next();
+});
+// ✅ FIX: use LRU cache with max size
+const LRU = require('lru-cache');
+const cache2 = new LRU({ max: 10000, ttl: 1000 * 60 * 5 });
+
+// ❌ LEAK: event listener accumulation
+function connectDB() {
+  emitter.on('data', handler); // adds new listener each call!
+}
+// ✅ FIX: removeListener or .once() or check listenerCount
+function connectDB2() {
+  emitter.removeAllListeners('data');
+  emitter.on('data', handler);
+}
+
+// ── Heap snapshots ──
+// Start with --inspect flag
+// node --inspect app.js
+// Open chrome://inspect → Memory tab → Take snapshot → Compare over time
+
+// ── Programmatic heap dump ──
+const v8 = require('v8');
+process.on('SIGUSR2', () => {
+  const filename = \`heap-\${Date.now()}.heapsnapshot\`;
+  require('fs').writeFileSync(filename, v8.writeHeapSnapshot());
+  console.log('Heap snapshot written:', filename);
+});</pre>`},
+
+{id:'performance',section:'Performance',icon:'📊',level:'advanced',
+q:'What is connection pooling and how do you configure it for databases?',
+a:`<pre>// ── MongoDB connection pooling (Mongoose) ──
+const mongoose = require('mongoose');
+
+await mongoose.connect(process.env.MONGODB_URI, {
+  maxPoolSize: 10,          // max connections in pool (default: 5)
+  minPoolSize: 2,           // keep minimum connections open
+  maxIdleTimeMS: 30000,     // close connections idle > 30s
+  serverSelectionTimeoutMS: 5000, // fail fast if can't connect
+  socketTimeoutMS: 45000,   // close if no response in 45s
+});
+
+// ── PostgreSQL connection pooling (pg) ──
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 20,                  // max pool size
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
+
+// Pool reuses connections automatically
+async function query(sql, params) {
+  const client = await pool.connect();
+  try {
+    return await client.query(sql, params);
+  } finally {
+    client.release(); // ALWAYS release back to pool
+  }
+}
+
+// ── Redis connection pooling (ioredis) ──
+const redis = require('ioredis');
+const redisClient = new redis({
+  host: process.env.REDIS_HOST,
+  port: 6379,
+  maxRetriesPerRequest: 3,
+  enableReadyCheck: true,
+  lazyConnect: true,        // don't connect until first command
+  keepAlive: 30000,
+});
+
+// ── Why pooling matters ──
+// Without pool: each request = new TCP connection = ~100ms overhead
+// With pool: requests reuse existing connections = ~1ms overhead
+// Too small pool → requests queue up → high latency
+// Too large pool → DB server overwhelmed → crashes</pre>`},
+
+// ─── SECURITY ────────────────────────────────────────────────────
+{id:'security',section:'Security',icon:'🔒',level:'intermediate',
+q:'What are the most important Node.js security practices?',
+a:`<ul>
+<li><strong>Helmet.js</strong> — sets ~14 HTTP security headers (CSP, HSTS, X-Frame-Options, etc.)</li>
+<li><strong>Input validation</strong> — validate and sanitize ALL user input (express-validator, zod, joi)</li>
+<li><strong>SQL/NoSQL injection prevention</strong> — use parameterized queries, never string-concatenate user input</li>
+<li><strong>Rate limiting</strong> — prevent brute force and DoS (express-rate-limit, redis-based for clusters)</li>
+<li><strong>Dependency security</strong> — run <code>npm audit</code> regularly, use Dependabot/Snyk</li>
+<li><strong>Secrets management</strong> — never commit secrets; use <code>.env</code> + dotenv locally, AWS Secrets Manager / Vault in production</li>
+<li><strong>CORS</strong> — restrict origins, methods, and headers to minimum required</li>
+<li><strong>HTTPS only</strong> — enforce TLS; set HSTS; redirect HTTP to HTTPS</li>
+</ul>
+<pre>const helmet = require('helmet');
+const cors = require('cors');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+
+app.use(helmet());
+
+app.use(cors({
+  origin: ['https://myapp.com'],   // whitelist specific origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
+app.use(mongoSanitize()); // strip $ and . from req.body/params
+app.use(xss());           // sanitize HTML to prevent XSS
+
+// ❌ NoSQL Injection
+User.findOne({ username: req.body.username }); // body = { "$gt": "" } → returns all!
+// ✅ Sanitized (mongoSanitize strips operators)
+
+// ❌ Never log sensitive data
+console.log('User logged in:', user); // may log password!
+// ✅ Log only what you need
+console.log('User logged in:', { userId: user._id, email: user.email });</pre>`},
+
+{id:'security',section:'Security',icon:'🔒',level:'intermediate',
+q:'How do you prevent common vulnerabilities: CSRF, XSS, and SQL/NoSQL injection?',
+a:`<pre>// ── CSRF (Cross-Site Request Forgery) ──
+const csrf = require('csurf');
+const cookieParser = require('cookie-parser');
+
+app.use(cookieParser());
+app.use(csrf({ cookie: { httpOnly: true, sameSite: 'strict' } }));
+
+app.get('/form', (req, res) => {
+  res.json({ csrfToken: req.csrfToken() }); // include in forms
+});
+// SameSite cookies alone prevent most CSRF for modern browsers
+
+// ── XSS (Cross-Site Scripting) ──
+// Output encoding when returning user data in HTML
+const escapeHtml = (str) => str
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+// Content-Security-Policy header (via helmet)
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'"],   // no inline scripts!
+    styleSrc: ["'self'"],
+    imgSrc: ["'self'", 'data:', 'https:'],
+  },
+}));
+
+// ── SQL Injection (with pg parameterized queries) ──
+// ❌ NEVER
+const q = \`SELECT * FROM users WHERE email = '\${req.body.email}'\`;
+
+// ✅ Parameterized — driver handles escaping
+const result = await pool.query(
+  'SELECT * FROM users WHERE email = $1',
+  [req.body.email]
+);
+
+// ── Path Traversal ──
+const path = require('path');
+app.get('/file', (req, res) => {
+  const safeName = path.basename(req.query.name); // strips ../../../
+  const filePath = path.join(__dirname, 'uploads', safeName);
+  if (!filePath.startsWith(path.join(__dirname, 'uploads')))
+    return res.status(403).json({ error: 'Forbidden' });
+  res.sendFile(filePath);
+});</pre>`},
+
+{id:'security',section:'Security',icon:'🔒',level:'advanced',
+q:'How do you secure environment variables and secrets in production?',
+a:`<pre>// ── Development: .env file ──
+// .env (NEVER commit to git — add to .gitignore!)
+// DB_URI=mongodb://...
+// JWT_SECRET=super-random-64-char-string
+// REDIS_URL=redis://...
+
+require('dotenv').config(); // loads .env into process.env
+
+// ── Validate required env vars on startup ──
+function requireEnv(...keys) {
+  const missing = keys.filter(k => !process.env[k]);
+  if (missing.length) {
+    console.error('Missing required env vars:', missing.join(', '));
+    process.exit(1);
+  }
+}
+requireEnv('DB_URI', 'JWT_SECRET', 'REDIS_URL');
+
+// ── Production: AWS Secrets Manager ──
+const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
+
+async function getSecret(secretName) {
+  const client = new SecretsManagerClient({ region: 'ap-south-1' });
+  const response = await client.send(
+    new GetSecretValueCommand({ SecretId: secretName })
+  );
+  return JSON.parse(response.SecretString);
+}
+
+// Load secrets at startup, not per request
+let secrets;
+async function init() {
+  secrets = await getSecret('myapp/production');
+  await mongoose.connect(secrets.DB_URI);
+  app.listen(3000);
+}
+init();
+
+// ── Secret rotation best practices ──
+// 1. Never log process.env or secrets objects
+// 2. Use IAM roles in AWS, not hardcoded credentials
+// 3. Rotate secrets regularly (automated in AWS SM)
+// 4. Principle of least privilege — each service has its own secret</pre>`},
+
+// ─── TESTING ─────────────────────────────────────────────────────
+{id:'testing',section:'Testing',icon:'🧪',level:'intermediate',
+q:'How do you write unit tests for Node.js with Jest?',
+a:`<pre>// userService.js
+async function createUser({ name, email, password }) {
+  if (await User.exists({ email })) throw new Error('Email already exists');
+  const hash = await bcrypt.hash(password, 10);
+  return User.create({ name, email, password: hash });
+}
+
+// userService.test.js
+const { createUser } = require('./userService');
+const User = require('./models/User');
+const bcrypt = require('bcryptjs');
+
+jest.mock('./models/User');
+jest.mock('bcryptjs');
+
+describe('createUser', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('creates user with hashed password', async () => {
+    User.exists.mockResolvedValue(false);
+    bcrypt.hash.mockResolvedValue('hashed_pw');
+    User.create.mockResolvedValue({
+      _id: '123', name: 'Afsal', email: 'a@b.com'
+    });
+
+    const user = await createUser({
+      name: 'Afsal', email: 'a@b.com', password: 'secret123'
+    });
+
+    expect(bcrypt.hash).toHaveBeenCalledWith('secret123', 10);
+    expect(User.create).toHaveBeenCalledWith(
+      expect.objectContaining({ password: 'hashed_pw' })
+    );
+    expect(user.email).toBe('a@b.com');
+  });
+
+  it('throws if email already exists', async () => {
+    User.exists.mockResolvedValue(true);
+    await expect(createUser({ email: 'a@b.com', password: 'x' }))
+      .rejects.toThrow('Email already exists');
+    expect(User.create).not.toHaveBeenCalled();
+  });
+});</pre>`},
+
+{id:'testing',section:'Testing',icon:'🧪',level:'intermediate',
+q:'How do you write integration tests for Express APIs using Supertest?',
+a:`<pre>// app.js — export app without calling .listen()
+const express = require('express');
+const app = express();
+app.use(express.json());
+app.use('/api/users', require('./routes/users'));
+module.exports = app;
+
+// server.js — entry point
+const app = require('./app');
+app.listen(3000);
+
+// users.test.js — integration tests
+const request = require('supertest');
+const mongoose = require('mongoose');
+const app = require('./app');
+const User = require('./models/User');
+
+beforeAll(async () => {
+  await mongoose.connect(process.env.MONGODB_TEST_URI);
+});
+
+afterEach(async () => {
+  await User.deleteMany({}); // clean up between tests
+});
+
+afterAll(async () => {
+  await mongoose.disconnect();
+});
+
+describe('POST /api/users', () => {
+  it('creates user and returns 201', async () => {
+    const res = await request(app)
+      .post('/api/users')
+      .send({ name: 'Afsal', email: 'a@b.com', password: 'Password1!' });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toMatchObject({ name: 'Afsal', email: 'a@b.com' });
+    expect(res.body.password).toBeUndefined(); // never expose password
+  });
+
+  it('returns 422 on invalid email', async () => {
+    const res = await request(app)
+      .post('/api/users')
+      .send({ name: 'Test', email: 'not-an-email', password: 'pass' });
+
+    expect(res.status).toBe(422);
+    expect(res.body.errors).toContainEqual(
+      expect.objectContaining({ path: 'email' })
+    );
+  });
+});</pre>`},
+
+{id:'testing',section:'Testing',icon:'🧪',level:'advanced',
+q:'What is test coverage, mocking, and how do you test async code correctly?',
+a:`<pre>// jest.config.js
+module.exports = {
+  testEnvironment: 'node',
+  collectCoverageFrom: ['src/**/*.js', '!src/**/*.test.js'],
+  coverageThreshold: {
+    global: { branches: 80, functions: 80, lines: 80, statements: 80 }
+  },
+  setupFilesAfterFramework: ['./tests/setup.js']
+};
+
+// ── Async test patterns ──
+
+// ✅ async/await (recommended)
+it('fetches user', async () => {
+  const user = await getUser(1);
+  expect(user.id).toBe(1);
+});
+
+// ✅ return promise
+it('fetches user', () => {
+  return getUser(1).then(user => expect(user.id).toBe(1));
+});
+
+// ❌ WRONG — test passes even if assertion fails!
+it('fetches user', () => {
+  getUser(1).then(user => expect(user.id).toBe(1));
+  // Promise not returned — Jest doesn't wait for it
+});
+
+// ── Timer mocks ──
+jest.useFakeTimers();
+it('retries after delay', async () => {
+  const spy = jest.fn().mockRejectedValueOnce(new Error('fail')).mockResolvedValue('ok');
+  const promise = withRetry(spy);
+  jest.advanceTimersByTime(1100); // fast-forward 1.1 seconds
+  const result = await promise;
+  expect(result).toBe('ok');
+  expect(spy).toHaveBeenCalledTimes(2);
+});
+
+// ── Mock HTTP requests ──
+const nock = require('nock');
+it('calls external API', async () => {
+  nock('https://api.example.com')
+    .get('/users/1')
+    .reply(200, { id: 1, name: 'Afsal' });
+
+  const user = await fetchExternalUser(1);
+  expect(user.name).toBe('Afsal');
+  expect(nock.isDone()).toBe(true); // all mocked requests were called
+});</pre>`},
+
+// ─── DESIGN PATTERNS ─────────────────────────────────────────────
+{id:'design',section:'Design Patterns',icon:'🏗️',level:'intermediate',
+q:'What is the Repository Pattern in Node.js and why use it?',
+a:`<p>The Repository Pattern <strong>abstracts the data layer</strong> behind an interface — your business logic doesn't know or care about MongoDB, PostgreSQL, or any specific ORM.</p>
+<pre>// interfaces/IUserRepository.js (TypeScript interface / documented contract)
+// { create, findById, findByEmail, update, delete, findAll }
+
+// repositories/MongoUserRepository.js
+class MongoUserRepository {
+  async findById(id) {
+    return User.findById(id).lean();
+  }
+  async findByEmail(email) {
+    return User.findOne({ email }).lean();
+  }
+  async create(data) {
+    const user = new User(data);
+    return user.save();
+  }
+  async update(id, updates) {
+    return User.findByIdAndUpdate(id, updates, { new: true }).lean();
+  }
+  async delete(id) {
+    return User.findByIdAndDelete(id);
+  }
+}
+
+// services/UserService.js — depends on interface, not implementation
+class UserService {
+  constructor(userRepo) {  // injected dependency
+    this.userRepo = userRepo;
+  }
+  async register({ name, email, password }) {
+    if (await this.userRepo.findByEmail(email))
+      throw Object.assign(new Error('Email taken'), { status: 409 });
+    const hash = await bcrypt.hash(password, 10);
+    return this.userRepo.create({ name, email, password: hash });
+  }
+}
+
+// Composition root (app.js)
+const userRepo = new MongoUserRepository();
+const userService = new UserService(userRepo);
+
+// Test (swap implementation — no DB needed)
+const userService2 = new UserService(new InMemoryUserRepository());</pre>`},
+
+{id:'design',section:'Design Patterns',icon:'🏗️',level:'intermediate',
+q:'What is Dependency Injection in Node.js?',
+a:`<p>DI means <strong>passing dependencies into a function/class</strong> rather than creating them inside. Makes code testable, modular, and loosely coupled.</p>
+<pre>// ❌ Tight coupling — hard to test, hard to swap
+class OrderService {
+  constructor() {
+    this.db = mongoose.connection; // hardcoded dependency
+    this.mailer = new NodeMailer({ ... }); // hardcoded
+    this.logger = console; // hardcoded
+  }
+}
+
+// ✅ Dependency Injection
+class OrderService {
+  constructor({ orderRepo, mailer, logger, paymentGateway }) {
+    this.orderRepo = orderRepo;
+    this.mailer = mailer;
+    this.logger = logger;
+    this.paymentGateway = paymentGateway;
+  }
+
+  async createOrder(userId, items) {
+    this.logger.info('Creating order', { userId });
+    const order = await this.orderRepo.create({ userId, items });
+    const charge = await this.paymentGateway.charge(order.total);
+    await this.mailer.send('order-confirmation', { order, charge });
+    return order;
+  }
+}
+
+// Production composition
+const orderService = new OrderService({
+  orderRepo: new MongoOrderRepository(),
+  mailer: new SendGridMailer(process.env.SENDGRID_KEY),
+  logger: require('./logger'), // winston/pino
+  paymentGateway: new StripeGateway(process.env.STRIPE_KEY)
+});
+
+// Test composition
+const orderService = new OrderService({
+  orderRepo: new InMemoryOrderRepository(),
+  mailer: { send: jest.fn() },
+  logger: { info: jest.fn(), error: jest.fn() },
+  paymentGateway: { charge: jest.fn().mockResolvedValue({ id: 'ch_123' }) }
+});</pre>`},
+
+{id:'design',section:'Design Patterns',icon:'🏗️',level:'advanced',
+q:'What are the key differences between microservices and monolith in Node.js?',
+a:`<ul>
+<li><strong>Monolith</strong> — single deployable unit; all modules in one process; simple to develop, test, and deploy initially; hard to scale specific parts; one bug can crash everything</li>
+<li><strong>Microservices</strong> — independently deployable services; each owns its data; scale individually; complex infrastructure (service discovery, distributed tracing, auth across services)</li>
+</ul>
+<pre>// ── Microservice communication patterns ──
+
+// 1. Synchronous: HTTP/REST or gRPC
+// Service A → HTTP → Service B
+const userRes = await fetch('http://user-service:3001/users/' + userId);
+
+// 2. Asynchronous: Message Queue (RabbitMQ / Kafka)
+const amqp = require('amqplib');
+const conn = await amqp.connect('amqp://localhost');
+const ch = await conn.createChannel();
+
+// Publisher
+await ch.assertQueue('order.created');
+ch.sendToQueue('order.created', Buffer.from(JSON.stringify(order)));
+
+// Consumer (inventory-service)
+ch.consume('order.created', async (msg) => {
+  const order = JSON.parse(msg.content);
+  await inventory.decrementStock(order.items);
+  ch.ack(msg);
+});
+
+// ── When to choose what ──
+// Monolith first: faster to build, fewer moving parts, good until ~15-20 devs
+// Split to microservices when: independent scaling needed, teams own domains,
+// different tech stacks required, or deployment cadence differs greatly</pre>`},
+
+// ─── SCENARIO QUESTIONS ──────────────────────────────────────────
+{id:'scenarios',section:'Scenario Questions',icon:'🎯',level:'scenario',
+q:'SCENARIO: Your Node.js API is handling 1000 req/s and suddenly response times jump from 50ms to 5s. How do you diagnose and fix it?',
+a:`<div class="scenario-box"><div class="scenario-label">Real-world scenario</div><div class="scenario-text">Production incident — high latency, no obvious errors. Walk through your complete investigation and resolution process.</div></div>
+<p><strong>Step 1 — Gather data (triage)</strong></p>
+<pre>// Check event loop lag (is something blocking it?)
+const { monitorEventLoopDelay } = require('perf_hooks');
+const histogram = monitorEventLoopDelay({ resolution: 20 });
+histogram.enable();
+setInterval(() => {
+  console.log('EL delay (ms):', histogram.mean / 1e6, 'p99:', histogram.percentile(99) / 1e6);
+}, 5000);
+
+// Check memory
+setInterval(() => {
+  const m = process.memoryUsage();
+  console.log('heapUsed:', Math.round(m.heapUsed/1024/1024) + 'MB');
+}, 5000);
+
+// Check active handles (possible leak)
+process._getActiveHandles().length
+process._getActiveRequests().length</pre>
+<p><strong>Step 2 — Likely culprits and fixes</strong></p>
+<ul>
+<li><strong>DB slow queries:</strong> Enable MongoDB slow query log (<code>db.setProfilingLevel(1, 100)</code>). Missing index after new data volume? Add index, use explain().</li>
+<li><strong>Event loop blocked:</strong> Use <code>clinic doctor</code> or <code>0x</code> to get a flamegraph. Look for synchronous CPU work.</li>
+<li><strong>Memory pressure → GC pauses:</strong> Heap near limit causes long GC pauses. Add <code>--max-old-space-size=4096</code> or fix the leak.</li>
+<li><strong>Downstream service slow:</strong> Add timeouts to all external calls (<code>fetch(..., { signal: AbortSignal.timeout(3000) })</code>)</li>
+<li><strong>Connection pool exhausted:</strong> Increase <code>maxPoolSize</code> or fix connection leaks (unreleased pool clients)</li>
+<li><strong>N+1 query problem:</strong> Logging shows 1000 DB queries for a list endpoint. Add projection + $lookup or batch with DataLoader.</li>
+</ul>
+<p><strong>Step 3 — Prevention</strong></p>
+<ul>
+<li>APM (Datadog / New Relic / OpenTelemetry) — catch before users report</li>
+<li>Circuit breakers (opossum) — fail fast when downstream is slow</li>
+<li>Request timeouts on all routes and external calls</li>
+<li>Load testing (k6, Artillery) in staging before deploy</li>
+</ul>`},
+
+{id:'scenarios',section:'Scenario Questions',icon:'🎯',level:'scenario',
+q:'SCENARIO: Design a rate limiter for an API that allows 100 req/min per user, works across multiple Node.js instances.',
+a:`<div class="scenario-box"><div class="scenario-label">System Design</div><div class="scenario-text">In-memory rate limiting doesn't work when you have multiple servers. Design a distributed solution.</div></div>
+<pre>// ── Redis sliding window rate limiter ──
+const redis = require('ioredis');
+const client = new redis(process.env.REDIS_URL);
+
+async function isRateLimited(userId, limit = 100, windowMs = 60 * 1000) {
+  const key = \`ratelimit:\${userId}\`;
+  const now = Date.now();
+  const windowStart = now - windowMs;
+
+  // Lua script ensures atomicity across these operations
+  const luaScript = \`
+    local key = KEYS[1]
+    local now = tonumber(ARGV[1])
+    local windowStart = tonumber(ARGV[2])
+    local limit = tonumber(ARGV[3])
+    local ttl = tonumber(ARGV[4])
+
+    -- Remove expired entries
+    redis.call('ZREMRANGEBYSCORE', key, 0, windowStart)
+    -- Count current window requests
+    local count = redis.call('ZCARD', key)
+
+    if count < limit then
+      -- Add this request with current timestamp as score
+      redis.call('ZADD', key, now, now)
+      redis.call('PEXPIRE', key, ttl)
+      return 0  -- not limited
+    end
+    return 1  -- limited
+  \`;
+
+  const limited = await client.eval(
+    luaScript, 1, key, now, windowStart, limit, windowMs
+  );
+  return limited === 1;
+}
+
+// Express middleware
+async function rateLimitMiddleware(req, res, next) {
+  const userId = req.user?.id || req.ip;
+  try {
+    const limited = await isRateLimited(userId);
+    if (limited) {
+      return res.status(429).json({
+        error: 'Too Many Requests',
+        retryAfter: 60
+      });
+    }
+    next();
+  } catch (err) {
+    // If Redis is down, fail open (allow request) to avoid blocking users
+    console.error('Rate limiter error:', err.message);
+    next();
+  }
+}
+
+// Apply to specific routes
+app.use('/api/', rateLimitMiddleware);</pre>`},
+
+{id:'scenarios',section:'Scenario Questions',icon:'🎯',level:'scenario',
+q:'SCENARIO: You need to process 1 million records from a CSV file and insert them into MongoDB. What is your approach?',
+a:`<div class="scenario-box"><div class="scenario-label">Data Engineering</div><div class="scenario-text">Naively loading 1M records into memory would use ~2GB+ RAM and crash. Design a memory-efficient streaming pipeline.</div></div>
+<pre>const { createReadStream } = require('fs');
+const csv = require('csv-parser');
+const { MongoClient } = require('mongodb');
+const { Transform, pipeline } = require('stream');
+const { promisify } = require('util');
+
+const pipelineAsync = promisify(pipeline);
+
+async function importCSV(filePath) {
+  const client = await MongoClient.connect(process.env.MONGODB_URI);
+  const collection = client.db('mydb').collection('records');
+
+  let processed = 0;
+  let errors = 0;
+  const BATCH_SIZE = 1000; // bulk insert 1000 at a time
+
+  // Batch accumulator transform
+  class BatchTransform extends Transform {
+    constructor() {
+      super({ objectMode: true });
+      this.batch = [];
+    }
+    _transform(record, _, cb) {
+      // Validate & transform record
+      if (!record.email || !record.name) { errors++; return cb(); }
+      this.batch.push({ ...record, importedAt: new Date() });
+
+      if (this.batch.length >= BATCH_SIZE) {
+        const batch = this.batch.splice(0); // take and reset
+        collection.insertMany(batch, { ordered: false })
+          .then(() => { processed += batch.length; cb(); })
+          .catch(err => {
+            // ordered:false continues even if some fail
+            processed += batch.length;
+            cb();
+          });
+      } else cb();
+    }
+    _flush(cb) {
+      if (!this.batch.length) return cb();
+      collection.insertMany(this.batch, { ordered: false })
+        .then(() => { processed += this.batch.length; cb(); })
+        .catch(() => cb());
+    }
+  }
+
+  await pipelineAsync(
+    createReadStream(filePath),
+    csv(),                   // parse CSV to objects
+    new BatchTransform()     // batch insert to MongoDB
+  );
+
+  console.log(\`Done: \${processed} inserted, \${errors} skipped\`);
+  await client.close();
+}
+
+// Memory stays ~constant (only 1000 records in memory at a time)
+// For 1M records: ~10ms * 1000 batches = manageable</pre>`},
+
+{id:'scenarios',section:'Scenario Questions',icon:'🎯',level:'scenario',
+q:'SCENARIO: Build a real-time notification system for a chat application using Node.js.',
+a:`<div class="scenario-box"><div class="scenario-label">Architecture</div><div class="scenario-text">Multiple Node.js instances, users connected to different instances. How do you broadcast messages to all relevant users?</div></div>
+<pre>// ── Problem: WebSocket connections are per-instance
+// Solution: Redis Pub/Sub as message broker across instances
+
+const { WebSocketServer } = require('ws');
+const redis = require('ioredis');
+const http = require('http');
+
+// Two Redis clients (one for pub, one for sub — can't mix in ioredis)
+const publisher = new redis(process.env.REDIS_URL);
+const subscriber = new redis(process.env.REDIS_URL);
+
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
+
+// Map: userId → Set of WebSocket connections
+const userConnections = new Map();
+
+wss.on('connection', (ws, req) => {
+  const userId = getUserIdFromToken(req); // parse JWT from query param
+
+  // Register connection
+  if (!userConnections.has(userId)) userConnections.set(userId, new Set());
+  userConnections.get(userId).add(ws);
+
+  ws.on('message', async (data) => {
+    const msg = JSON.parse(data);
+    if (msg.type === 'chat') {
+      // Save to DB
+      const saved = await Message.create({ from: userId, ...msg });
+      // Publish to Redis — all instances will receive this
+      await publisher.publish('chat', JSON.stringify({
+        to: msg.to,
+        message: saved
+      }));
+    }
+  });
+
+  ws.on('close', () => {
+    userConnections.get(userId)?.delete(ws);
+    if (!userConnections.get(userId)?.size)
+      userConnections.delete(userId);
+  });
+});
+
+// Each instance subscribes to Redis channel
+subscriber.subscribe('chat');
+subscriber.on('message', (channel, raw) => {
+  if (channel !== 'chat') return;
+  const { to, message } = JSON.parse(raw);
+
+  // Deliver to local connections for this user
+  const conns = userConnections.get(to);
+  if (conns) {
+    const payload = JSON.stringify({ type: 'message', data: message });
+    conns.forEach(ws => {
+      if (ws.readyState === ws.OPEN) ws.send(payload);
+    });
+  }
+});
+
+server.listen(3000);</pre>`},
+
+{id:'scenarios',section:'Scenario Questions',icon:'🎯',level:'scenario',
+q:'SCENARIO: Your Node.js app is crashing every few hours with "Out of Memory". How do you find and fix the leak?',
+a:`<div class="scenario-box"><div class="scenario-label">Production Debugging</div><div class="scenario-text">Memory slowly grows over time and the process eventually crashes. Systematic approach to find the root cause.</div></div>
+<p><strong>Phase 1 — Confirm it's a leak (not just normal growth)</strong></p>
+<pre>// Add memory monitoring — graph it over time
+const memHistory = [];
+setInterval(() => {
+  const { heapUsed, rss } = process.memoryUsage();
+  memHistory.push({ ts: Date.now(), heapUsed, rss });
+  // If heapUsed grows linearly over hours → memory leak
+  // If it grows then GC brings it back → normal
+  console.log('heapUsed:', Math.round(heapUsed/1024/1024) + 'MB');
+}, 30000);</pre>
+<p><strong>Phase 2 — Heap snapshots to find what's growing</strong></p>
+<pre>// Take snapshot before, wait for growth, take another, compare in Chrome
+const v8 = require('v8');
+process.on('SIGUSR2', () => {
+  const file = v8.writeHeapSnapshot();
+  console.log('Snapshot:', file);
+});
+// kill -USR2 <pid>  →  open in Chrome DevTools → Memory → Load snapshots
+// Sort by "Retained Size Delta" — find what grew</pre>
+<p><strong>Phase 3 — Common culprits to check</strong></p>
+<ul>
+<li><strong>Event listener leak:</strong> <code>emitter.listenerCount('data')</code> growing? Forgetting <code>removeListener</code> in cleanup.</li>
+<li><strong>Cache with no eviction:</strong> <code>Map/Set/Object</code> used as cache without TTL or max size. Fix: use <code>lru-cache</code>.</li>
+<li><strong>Closure leak:</strong> Long-lived callbacks holding references to large request/response objects.</li>
+<li><strong>Unresolved promises:</strong> Promises created but never resolved/rejected keep their closures in memory.</li>
+<li><strong>Timer not cleared:</strong> <code>setInterval</code> callbacks holding references to large objects.</li>
+</ul>
+<pre>// ❌ Classic leak: growing Map cache
+const requestCache = new Map();
+app.use((req, res, next) => {
+  requestCache.set(req.id, req); // never cleared!
+  next();
+});
+
+// ✅ Fix: LRU cache with max size
+const LRU = require('lru-cache');
+const requestCache = new LRU({ max: 1000, ttl: 1000 * 60 });
+
+// Quick mitigation while fixing: restart with memory limit
+// node --max-old-space-size=512 app.js
+// PM2 will auto-restart when it crashes</pre>`},
+
+{id:'scenarios',section:'Scenario Questions',icon:'🎯',level:'scenario',
+q:'SCENARIO: Design a background job queue system in Node.js (e.g. sending emails, processing images).',
+a:`<div class="scenario-box"><div class="scenario-label">Architecture Design</div><div class="scenario-text">You need to run tasks asynchronously without blocking API responses. Design a robust job queue.</div></div>
+<pre>// Using BullMQ (Redis-backed job queue)
+const { Queue, Worker, QueueEvents } = require('bullmq');
+const IORedis = require('ioredis');
+
+const connection = new IORedis(process.env.REDIS_URL, { maxRetriesPerRequest: null });
+
+// ── Define queues ──
+const emailQueue = new Queue('emails', { connection });
+const imageQueue = new Queue('images', { connection,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: { type: 'exponential', delay: 2000 },
+    removeOnComplete: { count: 100 },
+    removeOnFail: { count: 500 }
+  }
+});
+
+// ── Producer: add jobs from API ──
+app.post('/api/users', async (req, res) => {
+  const user = await UserService.create(req.body);
+
+  // Enqueue async tasks — don't await them
+  await emailQueue.add('welcome-email', {
+    to: user.email, name: user.name
+  });
+
+  res.status(201).json(user); // respond immediately
+});
+
+// ── Consumer: worker process ──
+const emailWorker = new Worker('emails', async (job) => {
+  const { to, name } = job.data;
+
+  job.updateProgress(20);
+  await mailer.send({ to, subject: 'Welcome!',
+    html: \`<h1>Welcome \${name}!</h1>\` });
+  job.updateProgress(100);
+
+  return { sent: true, timestamp: Date.now() };
+}, {
+  connection,
+  concurrency: 5,  // process 5 emails concurrently
+});
+
+emailWorker.on('completed', (job, result) =>
+  console.log(\`Job \${job.id} done\`, result));
+
+emailWorker.on('failed', (job, err) =>
+  console.error(\`Job \${job?.id} failed:\`, err.message));
+
+// ── Monitoring ──
+const events = new QueueEvents('emails', { connection });
+events.on('waiting', ({ jobId }) => console.log('Waiting:', jobId));
+events.on('active', ({ jobId }) => console.log('Active:', jobId));</pre>`},
+
+{id:'scenarios',section:'Scenario Questions',icon:'🎯',level:'scenario',
+q:'SCENARIO: How would you implement graceful shutdown for a Node.js server in production?',
+a:`<div class="scenario-box"><div class="scenario-label">Production Reliability</div><div class="scenario-text">When Kubernetes sends SIGTERM for a rolling deploy, or a crash occurs — how do you ensure no in-flight requests are dropped and resources are cleanly released?</div></div>
+<pre>const express = require('express');
+const mongoose = require('mongoose');
+const redis = require('ioredis');
+
+const app = express();
+const server = app.listen(3000);
+const redisClient = new redis(process.env.REDIS_URL);
+
+// Track in-flight requests
+let requestCount = 0;
+app.use((req, res, next) => {
+  requestCount++;
+  res.on('finish', () => requestCount--);
+  next();
+});
+
+// Graceful shutdown function
+async function gracefulShutdown(signal) {
+  console.log(\`Received \${signal}. Starting graceful shutdown...\`);
+
+  // 1. Stop accepting new connections
+  server.close(async () => {
+    console.log('HTTP server closed to new connections');
+
+    // 2. Wait for in-flight requests (with timeout)
+    const maxWait = 30 * 1000; // 30 seconds
+    const start = Date.now();
+    while (requestCount > 0 && Date.now() - start < maxWait) {
+      console.log(\`Waiting for \${requestCount} requests to finish...\`);
+      await new Promise(r => setTimeout(r, 500));
+    }
+    if (requestCount > 0)
+      console.warn(\`Forcing shutdown with \${requestCount} requests still active\`);
+
+    // 3. Close external connections
+    try {
+      await mongoose.disconnect();
+      console.log('MongoDB disconnected');
+      await redisClient.quit();
+      console.log('Redis disconnected');
+      // Close worker queues, message consumers, etc.
+    } catch (err) {
+      console.error('Error during cleanup:', err.message);
+    }
+
+    console.log('Graceful shutdown complete');
+    process.exit(0);
+  });
+
+  // Force exit if shutdown takes too long (Kubernetes SIGKILL after 30s anyway)
+  setTimeout(() => {
+    console.error('Forced shutdown after timeout');
+    process.exit(1);
+  }, 35 * 1000);
+}
+
+// Register signal handlers
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM')); // Kubernetes, PM2
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));   // Ctrl+C
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  gracefulShutdown('uncaughtException');
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason);
+  gracefulShutdown('unhandledRejection');
+});</pre>`},
+
+{id:'scenarios',section:'Scenario Questions',icon:'🎯',level:'scenario',
+q:'SCENARIO: Your API is getting hit with a DDoS attack. What immediate and long-term defenses do you implement?',
+a:`<div class="scenario-box"><div class="scenario-label">Security + Incident Response</div><div class="scenario-text">Traffic spikes to 100x normal, response times degrade for all users. Walk through your immediate response and long-term hardening.</div></div>
+<p><strong>Immediate actions (minutes):</strong></p>
+<ul>
+<li>Enable Cloudflare / AWS Shield / CDN with DDoS protection — absorbs at network edge before hitting your servers</li>
+<li>Block offending IPs/ranges at firewall/load balancer level</li>
+<li>Temporarily lower rate limits aggressively</li>
+<li>Temporarily disable expensive non-critical endpoints</li>
+</ul>
+<p><strong>Code-level hardening:</strong></p>
+<pre>const rateLimit = require('express-rate-limit');
+const slowDown = require('express-slow-down');
+const { createClient } = require('redis');
+const { RedisStore } = require('rate-limit-redis');
+
+const redisClient = createClient({ url: process.env.REDIS_URL });
+
+// ── Tiered rate limiting (shared across all instances via Redis) ──
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  store: new RedisStore({ client: redisClient }), // distributed
+  keyGenerator: (req) => req.user?.id || req.ip,  // per-user or per-IP
+  handler: (req, res) => {
+    res.status(429).json({ error: 'Too many requests', retryAfter: 900 });
+  }
+});
+
+// ── Speed limiter (slow down before hard block) ──
+const speedLimiter = slowDown({
+  windowMs: 15 * 60 * 1000,
+  delayAfter: 50,          // start slowing after 50 requests
+  delayMs: (used) => (used - 50) * 100, // +100ms per extra request
+  store: new RedisStore({ client: redisClient })
+});
+
+// ── Auth endpoint — extra strict ──
+const authLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,                  // max 5 login attempts per minute
+  skipSuccessfulRequests: true,
+  store: new RedisStore({ client: redisClient })
+});
+
+app.use('/api/', speedLimiter, apiLimiter);
+app.use('/auth/login', authLimiter);
+app.use('/auth/register', authLimiter);
+
+// ── Request size limits ──
+app.use(express.json({ limit: '10kb' }));  // prevent giant JSON payloads
+
+// ── Request timeout ──
+app.use((req, res, next) => {
+  res.setTimeout(10000, () => {
+    res.status(503).json({ error: 'Request timeout' });
+  });
+  next();
+});</pre>`},
+];
+
+let currentFilter = 'all';
+let viewed = new Set();
+const totalQ = QA.length;
+
+function buildSections() {
+  const map = {};
+  QA.forEach((item, idx) => {
+    if (!map[item.id]) map[item.id] = { title: item.section, icon: item.icon, items: [] };
+    map[item.id].items.push({ ...item, idx });
+  });
+  return map;
+}
+
+function renderAll(filterText = '', filterLevel = 'all') {
+  const container = document.getElementById('qa-container');
+  const sections = buildSections();
+  let totalVisible = 0;
+  let html = '';
+
+  Object.entries(sections).forEach(([id, sec]) => {
+    const filtered = sec.items.filter(item => {
+      const matchLevel = filterLevel === 'all' || item.level === filterLevel;
+      const matchText = !filterText || item.q.toLowerCase().includes(filterText) || item.a.toLowerCase().includes(filterText);
+      return matchLevel && matchText;
+    });
+    if (!filtered.length) return;
+    totalVisible += filtered.length;
+
+    html += `<section class="section" id="${id}">
+      <div class="section-header">
+        <div class="section-icon">${sec.icon}</div>
+        <div class="section-title">${sec.title}</div>
+        <div class="section-count">${filtered.length} questions</div>
+      </div>`;
+
+    filtered.forEach((item, i) => {
+      const isDone = viewed.has(item.idx);
+      const isScenario = item.level === 'scenario';
+      html += `<div class="qa-card${isScenario?' scenario':''}" id="card-${item.idx}">
+        <div class="qa-question" onclick="toggleCard(${item.idx})">
+          <span class="qa-num">${String(i+1).padStart(2,'0')}</span>
+          <span class="qa-q-text">${item.q}</span>
+          <div class="qa-meta">
+            <span class="badge badge-${item.level}">${item.level}</span>
+            <span class="viewed-dot${isDone?' done':''}" id="dot-${item.idx}"></span>
+            <span class="chevron" id="chev-${item.idx}">▼</span>
+          </div>
+        </div>
+        <div class="qa-answer" id="ans-${item.idx}">
+          <div class="ans-body">${item.a}</div>
+        </div>
+      </div>`;
+    });
+
+    html += `</section>`;
+  });
+
+  container.innerHTML = html;
+  document.getElementById('no-results').style.display = totalVisible ? 'none' : 'block';
+  document.getElementById('search-term').textContent = '"' + filterText + '"';
+  document.getElementById('total-q').textContent = totalQ;
+  updateProgress();
+}
+
+function toggleCard(idx) {
+  const card = document.getElementById(`card-${idx}`);
+  const isOpen = card.classList.contains('open');
+  document.querySelectorAll('.qa-card.open').forEach(c => c.classList.remove('open'));
+  if (!isOpen) {
+    card.classList.add('open');
+    viewed.add(idx);
+    const dot = document.getElementById(`dot-${idx}`);
+    if (dot) dot.classList.add('done');
+    updateProgress();
+  }
+}
+
+function updateProgress() {
+  const pct = Math.round(viewed.size / totalQ * 100);
+  document.getElementById('viewed-q').textContent = viewed.size;
+  document.getElementById('pct').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = pct + '%';
+}
+
+function doSearch() {
+  const val = document.getElementById('search').value.toLowerCase().trim();
+  renderAll(val, currentFilter);
+}
+
+function setFilter(level, btn) {
+  currentFilter = level;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll(document.getElementById('search').value.toLowerCase().trim(), level);
+}
+
+document.querySelectorAll('.nav-item').forEach(link => {
+  link.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    link.classList.add('active');
+  });
+});
+
+window.addEventListener('scroll', () => {
+  document.getElementById('scroll-top').classList.toggle('visible', window.scrollY > 300);
+  const secs = document.querySelectorAll('.section');
+  let cur = '';
+  secs.forEach(s => { if (window.scrollY >= s.offsetTop - 120) cur = s.id; });
+  if (cur) document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.getAttribute('href') === '#' + cur);
+  });
+});
+
+renderAll();
+</script>
+</body>
+</html>
