@@ -238,6 +238,13 @@
     transition: all 0.15s;
     border-left: 2px solid transparent;
     text-decoration: none;
+    background: none;
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    width: 100%;
+    text-align: left;
+    font-family: var(--mono);
   }
 
   .nav-item:hover {
@@ -715,7 +722,7 @@
     <div class="stats-row">
       <div class="stat-chip"><strong id="total-q">0</strong> questions</div>
       <div class="stat-chip"><strong id="viewed-q">0</strong> viewed</div>
-      <div class="stat-chip"><strong>10</strong> topics</div>
+      <div class="stat-chip"><strong id="total-topics">0</strong> topics</div>
       <div class="stat-chip"><strong id="pct">0%</strong> progress</div>
     </div>
   </div>
@@ -724,22 +731,7 @@
 <div class="layout">
   <!-- Sidebar -->
   <nav class="sidebar" id="sidebar">
-    <div class="progress-bar-wrap">
-      <div class="progress-label">Progress <span id="prog-label">0%</span></div>
-      <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
-    </div>
-    <div class="sidebar-label">Topics</div>
-    <a class="nav-item active" href="#basics"><span class="nav-dot"></span>Basics<span class="nav-count">5</span></a>
-    <a class="nav-item" href="#crud"><span class="nav-dot"></span>CRUD<span class="nav-count">4</span></a>
-    <a class="nav-item" href="#indexing"><span class="nav-dot"></span>Indexing<span class="nav-count">4</span></a>
-    <a class="nav-item" href="#aggregation"><span class="nav-dot"></span>Aggregation<span class="nav-count">4</span></a>
-    <a class="nav-item" href="#schema"><span class="nav-dot"></span>Schema Design<span class="nav-count">3</span></a>
-    <a class="nav-item" href="#transactions"><span class="nav-dot"></span>Transactions<span class="nav-count">2</span></a>
-    <a class="nav-item" href="#replication"><span class="nav-dot"></span>Replication<span class="nav-count">2</span></a>
-    <a class="nav-item" href="#sharding"><span class="nav-dot"></span>Sharding<span class="nav-count">2</span></a>
-    <a class="nav-item" href="#performance"><span class="nav-dot"></span>Performance<span class="nav-count">2</span></a>
-    <a class="nav-item" href="#advanced"><span class="nav-dot"></span>Advanced<span class="nav-count">4</span></a>
-    <a class="nav-item" href="#tips"><span class="nav-dot"></span>Interview Tips</a>
+    <div id="cat-pills"></div>
   </nav>
 
   <main id="main-content">
@@ -1435,138 +1427,173 @@ userSchema.post("find", (docs) => console.log("Found: " + docs.length));</pre>
 </ul>` },
 ];
 
+const categories = [...new Set(QA.map(item => item.section))];
+let activeCategory = null;
 let currentFilter = 'all';
+let filteredQuestions = [...QA];
 let viewed = new Set();
-let totalQ = QA.length;
+const totalQ = QA.length;
 
-function buildSections() {
-  const sections = {};
-  QA.forEach((item, idx) => {
-    if (!sections[item.id]) {
-      sections[item.id] = { title: item.section, icon: item.icon, items: [] };
-    }
-    sections[item.id].items.push({ ...item, idx });
-  });
-  return sections;
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[ch]);
 }
 
-function renderAll(filterText = '', filterLevel = 'all') {
-  const container = document.getElementById('qa-container');
-  const sections = buildSections();
-  let totalVisible = 0;
-  let html = '';
+function renderPills() {
+  const container = document.getElementById('cat-pills');
+  container.innerHTML = `
+    <div class="progress-bar-wrap">
+      <div class="progress-label">Progress <span id="prog-label">0%</span></div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+    </div>
+    <div class="sidebar-label">Topics</div>
+    <button class="nav-item active" type="button" data-cat="">
+      <span class="nav-dot"></span>All<span class="nav-count">${QA.length}</span>
+    </button>
+    ${categories.map(category => {
+      const first = QA.find(item => item.section === category);
+      const count = QA.filter(item => item.section === category).length;
+      return `
+      <button class="nav-item" type="button" data-cat="${escapeHtml(category)}">
+        <span class="nav-dot"></span>${first ? first.icon + ' ' : ''}${escapeHtml(category)}<span class="nav-count">${count}</span>
+      </button>
+    `;
+    }).join('')}
+    <button class="nav-item" type="button" data-cat="__tips">
+      <span class="nav-dot"></span>Interview Tips
+    </button>
+  `;
 
-  Object.entries(sections).forEach(([id, sec]) => {
-    const filtered = sec.items.filter(item => {
-      const matchLevel = filterLevel === 'all' || item.level === filterLevel;
-      const matchText = !filterText || item.q.toLowerCase().includes(filterText) || item.a.toLowerCase().includes(filterText);
-      return matchLevel && matchText;
+  container.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      if (item.dataset.cat === '__tips') {
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        item.classList.add('active');
+        document.getElementById('tips')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      setCategory(item.dataset.cat || null);
     });
-    if (!filtered.length) return;
-    totalVisible += filtered.length;
-
-    html += `<section class="section" id="${id}">
-      <div class="section-header">
-        <div class="section-icon">${sec.icon}</div>
-        <div class="section-title">${sec.title}</div>
-        <div class="section-count">${filtered.length} questions</div>
-      </div>`;
-
-    filtered.forEach((item, i) => {
-      const isDone = viewed.has(item.idx);
-      html += `<div class="qa-card" id="card-${item.idx}">
-        <div class="qa-question" onclick="toggleCard(${item.idx})">
-          <span class="qa-num">${String(i+1).padStart(2,'0')}</span>
-          <span class="qa-q-text">${item.q}</span>
-          <div class="qa-meta">
-            <span class="badge badge-${item.level}">${item.level}</span>
-            <span class="viewed-dot${isDone?' done':''}" id="dot-${item.idx}"></span>
-            <span class="chevron" id="chev-${item.idx}">▼</span>
-          </div>
-        </div>
-        <div class="qa-answer" id="ans-${item.idx}">
-          <div class="ans-body">${item.a}</div>
-        </div>
-      </div>`;
-    });
-
-    html += `</section>`;
   });
+}
 
-  container.innerHTML = html;
-  document.getElementById('no-results').style.display = totalVisible ? 'none' : 'block';
-  document.getElementById('search-term').textContent = '"' + filterText + '"';
-  document.getElementById('total-q').textContent = totalQ;
+function setCategory(category) {
+  activeCategory = category;
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.toggle('active', (item.dataset.cat || null) === category);
+  });
+  filterQuestions();
+}
+
+function filterQuestions() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  filteredQuestions = QA.filter(item => {
+    const matchCategory = !activeCategory || item.section === activeCategory;
+    const matchLevel = currentFilter === 'all' || item.level === currentFilter;
+    const plainAnswer = item.a.replace(/<[^>]+>/g, ' ');
+    const matchSearch = !q ||
+      item.q.toLowerCase().includes(q) ||
+      item.section.toLowerCase().includes(q) ||
+      plainAnswer.toLowerCase().includes(q);
+    return matchCategory && matchLevel && matchSearch;
+  });
+  renderGrid();
+}
+
+function renderGrid() {
+  const container = document.getElementById('qa-container');
+  const noRes = document.getElementById('no-results');
+  const sections = (activeCategory ? [activeCategory] : categories)
+    .map(category => ({
+      category,
+      items: filteredQuestions.filter(item => item.section === category),
+    }))
+    .filter(section => section.items.length);
+
+  noRes.style.display = filteredQuestions.length ? 'none' : 'block';
+  document.getElementById('search-term').textContent = document.getElementById('search').value || currentFilter;
+
+  container.innerHTML = sections.map(section => {
+    const first = section.items[0];
+    return `
+    <section class="section" id="${first.id}">
+      <div class="section-header">
+        <div class="section-icon">${first.icon}</div>
+        <div class="section-title">${escapeHtml(section.category)}</div>
+        <div class="section-count">${section.items.length} questions</div>
+      </div>
+      ${section.items.map(item => {
+        const idx = QA.indexOf(item);
+        const isDone = viewed.has(idx);
+        return `
+        <article class="qa-card" id="card-${idx}">
+          <div class="qa-question" onclick="toggleCard(${idx})">
+            <span class="qa-num">${String(idx + 1).padStart(2, '0')}</span>
+            <span class="qa-q-text">${escapeHtml(item.q)}</span>
+            <div class="qa-meta">
+              <span class="badge badge-${item.level}">${item.level}</span>
+              <span class="viewed-dot${isDone ? ' done' : ''}" id="dot-${idx}"></span>
+              <span class="chevron">▼</span>
+            </div>
+          </div>
+          <div class="qa-answer">
+            <div class="ans-body">${item.a}</div>
+          </div>
+        </article>
+      `;
+      }).join('')}
+    </section>
+  `;
+  }).join('');
+
   updateProgress();
 }
 
 function toggleCard(idx) {
   const card = document.getElementById(`card-${idx}`);
-  const ans = document.getElementById(`ans-${idx}`);
-  const chev = document.getElementById(`chev-${idx}`);
+  if (!card) return;
+  card.classList.toggle('open');
+  viewed.add(idx);
   const dot = document.getElementById(`dot-${idx}`);
-  const isOpen = card.classList.contains('open');
-
-  // close all
-  document.querySelectorAll('.qa-card.open').forEach(c => {
-    c.classList.remove('open');
-  });
-
-  if (!isOpen) {
-    card.classList.add('open');
-    viewed.add(idx);
-    if (dot) dot.classList.add('done');
-    updateProgress();
-  }
+  if (dot) dot.classList.add('done');
+  updateProgress();
 }
 
 function updateProgress() {
   const pct = Math.round(viewed.size / totalQ * 100);
+  document.getElementById('total-q').textContent = totalQ;
   document.getElementById('viewed-q').textContent = viewed.size;
+  document.getElementById('total-topics').textContent = categories.length;
   document.getElementById('pct').textContent = pct + '%';
-  document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('prog-label').textContent = pct + '%';
+  const progFill = document.getElementById('prog-fill');
+  const progLabel = document.getElementById('prog-label');
+  if (progFill) progFill.style.width = pct + '%';
+  if (progLabel) progLabel.textContent = pct + '%';
 }
 
 function doSearch() {
-  const val = document.getElementById('search').value.toLowerCase().trim();
-  renderAll(val, currentFilter);
+  filterQuestions();
 }
 
 function setFilter(level, btn) {
   currentFilter = level;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderAll(document.getElementById('search').value.toLowerCase().trim(), level);
+  if (btn) btn.classList.add('active');
+  filterQuestions();
 }
 
-// Nav click highlighting
-document.querySelectorAll('.nav-item').forEach(link => {
-  link.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    link.classList.add('active');
-  });
-});
-
-// Scroll highlight nav
 window.addEventListener('scroll', () => {
   const btn = document.getElementById('scroll-top');
   btn.classList.toggle('visible', window.scrollY > 300);
-
-  const sections = document.querySelectorAll('.section');
-  let current = '';
-  sections.forEach(sec => {
-    if (window.scrollY >= sec.offsetTop - 100) current = sec.id;
-  });
-  if (current) {
-    document.querySelectorAll('.nav-item').forEach(n => {
-      n.classList.toggle('active', n.getAttribute('href') === '#' + current);
-    });
-  }
 });
 
-// Init
-renderAll();
+renderPills();
+filterQuestions();
 </script>
 </body>
 </html>
